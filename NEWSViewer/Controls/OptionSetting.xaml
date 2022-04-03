@@ -1,0 +1,39 @@
+﻿<UserControl
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+            xmlns:compositions="clr-namespace:NEWSViewer.Compositions"
+             xmlns:local="clr-namespace:NEWSViewer.Controls"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" x:Class="NEWSViewer.Controls.OptionSetting"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Width="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="옵션 수정" Style="{StaticResource TextBlock_Header}"/>
+        <compositions:GridStackPanel Grid.Row="1">
+            <compositions:GridStackPanel.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+            </compositions:GridStackPanel.ColumnDefinitions>
+            <TextBlock Text="읽지 않은 색상" Margin="5"/>
+            <TextBlock Text="읽음 색상" Margin="5"/>
+            <TextBlock Text="검색어 강조 색상" Margin="5"/>
+            <TextBlock Text="한번에 가져올 최대 글" Margin="5"/>
+            <TextBlock Text="한번에 가져올 최대 날짜" Margin="5"/>
+            <TextBlock Text="자동삭제 날짜" Margin="5"/>
+            <TextBlock Text="웹페이지 캐시 시간" Margin="5"/>
+            <mah:ColorPicker Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <mah:ColorPicker Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <mah:ColorPicker Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        </compositions:GridStackPanel>
+        <StackPanel Grid.Row="2" HorizontalAlignment="Right"  VerticalAlignment="Bottom" Orientation="Horizontal" Margin="0 0 5 0">
+            <Button x:Name="Button_OK" HorizontalAlignment="Center" VerticalAlignment="Center" Content="확인" Margin="5 5 5 5"/>
+            <Button x:Name="Button_Cancel" HorizontalAlignment="Center" VerticalAlignment="Center" Content="취소" Margin="0 5 5 5"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
