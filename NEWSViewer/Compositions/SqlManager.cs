@@ -43,7 +43,7 @@ CREATE TABLE T_CATEGORY (
     Type TEXT,
     SearchText TEXT, 
     NoSearchText TEXT, 
-    UpCategory TEXT, 
+    UpCategorySeq INTEGER, 
     Number INTEGER,
     RegDate TEXT, 
     ModDate TEXT,
@@ -96,7 +96,7 @@ CREATE TABLE T_ARTICLE (
             p.Add("@Type", data.Type);
             p.Add("@SearchText", data.SearchText);
             p.Add("@NoSearchText", data.NoSearchText);
-            p.Add("@UpCategory", data.UpCategory);
+            p.Add("@UpCategorySeq", data.UpCategorySeq);
             p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm:ss"));
             p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm:ss"));
             return ExecuteDataSetSingle<T_CATEGORY>(@"
@@ -106,7 +106,7 @@ IsSearchTitle,
 Type,
 SearchText,
 NoSearchText,
-UpCategory,
+UpCategorySeq,
 RegDate,
 ModDate
 ) VALUES (
@@ -115,7 +115,7 @@ ModDate
 @Type,
 @SearchText,
 @NoSearchText,
-@UpCategory,
+@UpCategorySeq,
 @RegDate,
 @ModDate
 );
@@ -131,7 +131,7 @@ SELECT * FROM T_CATEGORY ORDER BY CategorySeq DESC LIMIT 1
             p.Add("@IsSearchTitle", data.IsSearchTitle);
             p.Add("@SearchText", data.SearchText);
             p.Add("@Type", data.Type);
-            p.Add("@UpCategory", data.UpCategory);
+            p.Add("@UpCategorySeq", data.UpCategorySeq);
             p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm:ss"));
             p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm:ss"));
             return ExecuteNonQuery(@"
@@ -143,7 +143,7 @@ IsSearchTitle=@IsSearchTitle,
 Type=@Type,
 SearchText=@SearchText,
 NoSearchText=@NoSearchText,
-UpCategory=@UpCategory,
+UpCategorySeq=@UpCategorySeq,
 RegDate=@RegDate,
 ModDate=@ModDate
 WHERE CategorySeq=@CategorySeq
@@ -221,7 +221,10 @@ ModDate
 @RegDate,
 @ReadDate,
 @ModDate
-)", lp);
+)
+
+
+", lp);
         }
 
         public int DeleteT_ARTICLE(T_ARTICLE data)
@@ -238,7 +241,7 @@ DELETE FROM T_ARTICLE WHERE Link=@Link
             SqlParamCollection p = new SqlParamCollection();
             p.Add("@CategorySeq", CategorySeq);
             string q = @"
-SELECT COUNT(*) Value FROM T_ARTICLE WHERE CategorySeq=@CategorySeq
+SELECT COUNT(*) Value FROM T_ARTICLE WHERE CategorySeq=@CategorySeq AND IsDelete = 0
 ";
             var result = ExecuteDataSetSingle<int>(q, p);
             return result;
@@ -249,8 +252,18 @@ SELECT COUNT(*) Value FROM T_ARTICLE WHERE CategorySeq=@CategorySeq
             SqlParamCollection p = new SqlParamCollection();
             p.Add("@CategorySeq", CategorySeq);
             string q = @"
-SELECT * FROM T_ARTICLE WHERE CategorySeq=@CategorySeq ORDER BY InfoTime Desc
+SELECT * FROM T_ARTICLE A WHERE A.CategorySeq=@CategorySeq AND A.IsDelete = 0 ORDER BY A.InfoTime Desc
 ";
+            var result = ExecuteDataSet<T_ARTICLE>(q, p);
+            return result;
+        }
+
+        public List<T_ARTICLE> SelectT_ARTICLE(IEnumerable<int> CategorySeqs)
+        {
+            SqlParamCollection p = new SqlParamCollection();
+            string q = string.Format(@"
+SELECT * FROM T_ARTICLE WHERE CategorySeq IN ({0}) AND IsDelete = 0 ORDER BY InfoTime Desc
+", string.Join(",", CategorySeqs.ToArray()));
             var result = ExecuteDataSet<T_ARTICLE>(q, p);
             return result;
         }

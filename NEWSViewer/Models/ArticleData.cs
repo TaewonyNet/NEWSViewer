@@ -33,7 +33,7 @@ namespace NEWSViewer
             TextBlock textBlock = new TextBlock();
             if (Data != null) 
             {
-                if (string.IsNullOrEmpty(_searchText) == false)
+                if (string.IsNullOrWhiteSpace(_searchText) == false)
                 {
                     var text = GetSearchText(content, _searchText);
                     foreach (var t in text)

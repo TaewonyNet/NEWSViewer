@@ -23,7 +23,7 @@ namespace NEWSViewer
 
         public string NoSearchText { get; set; }
 
-        public string UpCategory { get; set; }
+        public int? UpCategorySeq { get; set; }
 
         public int Number { get; set; }
 

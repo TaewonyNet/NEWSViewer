@@ -233,6 +233,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Compositions\Converters.cs" />
+    <Compile Include="Compositions\CSVHelper.cs" />
     <Compile Include="Compositions\GridStackPanel.cs" />
     <Compile Include="Compositions\Utilitys.cs" />
     <Compile Include="Compositions\WebDownloadManager.cs" />

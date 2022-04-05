@@ -25,8 +25,10 @@
             <TextBlock Text="검색어 강조 색상" Margin="5"/>
             <TextBlock Text="한번에 가져올 최대 글" Margin="5"/>
             <TextBlock Text="한번에 가져올 최대 날짜" Margin="5"/>
+            <TextBlock Text="전체검색 후 재검색 대기시간(초)" Margin="5"/>
             <TextBlock Text="자동삭제 날짜" Margin="5"/>
             <TextBlock Text="웹페이지 캐시 시간" Margin="5"/>
+            <TextBlock Text="미리보기 시 읽음 표시" Margin="5"/>
             <mah:ColorPicker Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             <mah:ColorPicker Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             <mah:ColorPicker Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top"/>

@@ -13,6 +13,7 @@
         <convert:NotNullToVisibility x:Key="NotNullToVisibility"/>
         <convert:ArticleHighlightColorConveter x:Key="ArticleHighlightColorConveter"/>
         <convert:DateTimeStringConveter x:Key="DateTimeStringConveter"/>
+        <convert:TrueParamConverter x:Key="TrueParamConverter"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -21,13 +22,16 @@
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
         <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Horizontal">
-            <Button x:Name="Button_ExportCategory" Content="검색어내보내기" Margin="5 5 5 5" IsEnabled="False"/>
-            <Button x:Name="Button_ImportCategory" Content="검색어가져오기" Margin="0 5 5 5" IsEnabled="False"/>
+            <Button x:Name="Button_ExportCategory" Content="검색어내보내기" Margin="5 5 5 5"/>
+            <Button x:Name="Button_ImportCategory" Content="검색어가져오기" Margin="0 5 5 5"/>
         </StackPanel>
         <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
             <Button x:Name="Button_ReadAll" Content="전체읽기" Margin="0 5 5 5"/>
             <Button x:Name="Button_Search" Content="검색시작" Margin="0 5 5 5"/>
-            <ProgressBar x:Name="ProgressBar_Search" Width="100" Margin="0 5 5 5" Value="100" />
+            <Grid Width="100" Margin="0 5 5 5" >
+                <ProgressBar x:Name="ProgressBar_Search" Value="100" />
+                <TextBlock x:Name="TextBlock_Search" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+            </Grid>
             <Button x:Name="Button_Option" Content="옵션설정" Margin="0 5 5 5"/>
         </StackPanel>
         <StackPanel Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Horizontal">
@@ -130,7 +134,7 @@
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
-                                        <ContentPresenter Content="{Binding Title}"/>
+                                        <ContentPresenter Content="{Binding Title}" TextBlock.FontWeight="{Binding Data.IsRead, Converter={StaticResource TrueParamConverter}, ConverterParameter=Bold}"/>
                                     </Grid>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
@@ -170,6 +174,7 @@
                 <StackPanel Orientation="Horizontal">
                     <TextBlock x:Name="TextBlock_Press" Margin="5"/>
                     <TextBlock x:Name="TextBlock_InfoTime" Margin="0 5 5 5"/>
+                    <Button x:Name="Button_ArticleLink" Content="전체기사보기" Margin="0 5 5 5" Visibility="Collapsed"/>
                 </StackPanel>
                 <ContentPresenter x:Name="RichTextBox_ArticleHeader" Grid.Row="1" Margin="5"/>
                 <ContentPresenter x:Name="RichTextBox_Article" Grid.Row="2" Margin="5"/>

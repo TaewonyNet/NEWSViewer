@@ -30,11 +30,11 @@ namespace NEWSViewer.Controls
 
         public CategoryData Data { get; set; }
 
-        public string UpCategory { get; set; }
+        public int? UpCategorySeq { get; set; }
         public PopupWindow Window { get; set; }
         public bool? DialogResult { get; set; }
 
-        public CategoryAdd(CategoryData data, string upCategory = "")
+        public CategoryAdd(CategoryData data, int? upCategory = null)
         {
             InitializeComponent();
 
@@ -50,7 +50,7 @@ namespace NEWSViewer.Controls
             else
             {
             }
-            if (string.IsNullOrEmpty(upCategory) == true)
+            if (upCategory == null)
             {
                 TextBlock_SearchText.Visibility = Visibility.Collapsed;
                 TextBox_SearchText.Visibility = Visibility.Collapsed;
@@ -63,7 +63,7 @@ namespace NEWSViewer.Controls
                 TextBlock_Category.Visibility = Visibility.Collapsed;
                 TextBox_Category.Visibility = Visibility.Collapsed;
             }
-            UpCategory = upCategory;
+            UpCategorySeq = upCategory;
             Data = data;
 
             TextBox_Category.Text = Data.Data.Category;
@@ -85,10 +85,10 @@ namespace NEWSViewer.Controls
             Data.Data.NoSearchText = TextBox_NoSearchText.Text.Trim();
             Data.Data.IsSearchTitle = CheckBox_SearchTitle.IsChecked.Value;
             Data.Data.ModDate = DateTime.Now;
-            if (string.IsNullOrEmpty(UpCategory) == false)
+            if (UpCategorySeq != null)
             {
                 Data.Count = 0;
-                Data.Data.UpCategory = UpCategory;
+                Data.Data.UpCategorySeq = UpCategorySeq;
             }
 
             DialogResult = true;
