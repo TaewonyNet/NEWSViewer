@@ -7,10 +7,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using TaewonyNet.Common.Compositions;
 
 namespace NEWSViewer
 {
-    public class ArticleData
+    public class ArticleData : NotifyPropertyBase
     {
         public T_ARTICLE Data { get; set; }
 
@@ -26,6 +27,13 @@ namespace NEWSViewer
                 _searchText = value;
                 Title = GetHighlightText(Data.Title);
             }
+        }
+
+        public void Refresh()
+        {
+            NotifyPropertyChanged("Data");
+            NotifyPropertyChanged("Title");
+            NotifyPropertyChanged("SearchText");
         }
 
         public TextBlock GetHighlightText(string content)
@@ -92,5 +100,6 @@ namespace NEWSViewer
             Data = data;
             SearchText = searchText;
         }
+
     }
 }

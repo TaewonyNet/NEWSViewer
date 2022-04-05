@@ -36,8 +36,12 @@ namespace NEWSViewer
             Log.AutoFlush = true;
             Log.OpenFileFlushTimeout = 0;
 #endif
+            Configuration.UseLocalApplicationData = true;
+            Configuration.Self = new Configuration();
             var datapath = System.IO.Path.Combine(BasePath, "data");
             WebDownloadManager = new WebDownloadManager(2, 100, 60, datapath);
+            GetOption();
+            SqlManager.Instance.DeleteT_ARTICLE(DateTime.Now.AddDays(Global.Instance.ReadAutoDeleteDay));
         }
 
 
@@ -83,32 +87,60 @@ namespace NEWSViewer
             }
         }
 
-        private Color _HighlightColor = Colors.Red;
-
-        public Color HighlightColor
+        public void SetOption()
         {
-            get { return _HighlightColor; }
-            set { _HighlightColor = value; }
+            List<T_OPTION> options = new List<T_OPTION>();
+            foreach (var key in OptionKeys)
+            {
+                string value = null;
+                var f = this.GetType().GetField(key);
+                var t = f.FieldType;
+                value = f.GetValue(this).ToString();
+                options.Add(new T_OPTION
+                {
+                    Key = key,
+                    Value = value,
+                });
+            }
+            SqlManager.Instance.InsertT_OPTION(options);
         }
 
-        private Color _ArticleColor = Colors.White;
-
-        public Color ArticleColor
+        public void GetOption()
         {
-            get { return _ArticleColor; }
-            set { _ArticleColor = value; }
+            var options = SqlManager.Instance.SelectT_OPTION();
+            if (options == null || options.Count == 0)
+            {
+                SetOption();
+            }
+            foreach (var option in options)
+            {
+                var f = this.GetType().GetField(option.Key);
+                if (f != null)
+                {
+                    var t = f.FieldType;
+                    if (t == typeof(Color))
+                    {
+                        f.SetValue(this, ColorConverter.ConvertFromString(option.Value));
+                    }
+                    else
+                    {
+                        f.SetValue(this, Convert.ChangeType(option.Value, t));
+                    }
+                }
+            }
         }
 
-        private Color _ArticleHighlightColor = (Color)ColorConverter.ConvertFromString("#FFFFA77E");
-
-        public Color ArticleHighlightColor
-        {
-            get { return _ArticleHighlightColor; }
-            set { _ArticleHighlightColor = value; }
-        }
-
-        public static string OptionHighlightColor = "HighlightColor";
-        public static string OptionArticleColor = "ArticleColor";
-        public static string OptionArticleHighlightColor = "ArticleHighlightColor";
+        public string[] OptionKeys = new[] {
+            "NoReadColor" ,"ReadColor", "HighlightColor", "CrawlerOnceCount", "CrawlerOnceDay", "ReSearchTimeSec", "ReadAutoDeleteDay", "WebPageCacheSec", "PreviewRead"
+        };
+        public Color NoReadColor = (Color)ColorConverter.ConvertFromString("#FFFFA77E");
+        public Color ReadColor = Colors.White;
+        public Color HighlightColor = Colors.Red;
+        public int CrawlerOnceCount = 50;
+        public int CrawlerOnceDay = 7;
+        public int ReSearchTimeSec = 300;
+        public int ReadAutoDeleteDay = 1;
+        public int WebPageCacheSec = 60;
+        public bool PreviewRead = true;
     }
 }

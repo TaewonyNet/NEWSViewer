@@ -97,6 +97,7 @@ CREATE TABLE T_ARTICLE (
             p.Add("@SearchText", data.SearchText);
             p.Add("@NoSearchText", data.NoSearchText);
             p.Add("@UpCategorySeq", data.UpCategorySeq);
+            p.Add("@Number", data.Number);
             p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm:ss"));
             p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm:ss"));
             return ExecuteDataSetSingle<T_CATEGORY>(@"
@@ -107,6 +108,7 @@ Type,
 SearchText,
 NoSearchText,
 UpCategorySeq,
+Number,
 RegDate,
 ModDate
 ) VALUES (
@@ -116,6 +118,7 @@ ModDate
 @SearchText,
 @NoSearchText,
 @UpCategorySeq,
+@Number,
 @RegDate,
 @ModDate
 );
@@ -129,21 +132,23 @@ SELECT * FROM T_CATEGORY ORDER BY CategorySeq DESC LIMIT 1
             p.Add("@CategorySeq", data.CategorySeq);
             p.Add("@Category", data.Category);
             p.Add("@IsSearchTitle", data.IsSearchTitle);
-            p.Add("@SearchText", data.SearchText);
             p.Add("@Type", data.Type);
+            p.Add("@SearchText", data.SearchText);
+            p.Add("@NoSearchText", data.NoSearchText);
             p.Add("@UpCategorySeq", data.UpCategorySeq);
+            p.Add("@Number", data.Number);
             p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm:ss"));
             p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm:ss"));
             return ExecuteNonQuery(@"
 UPDATE T_CATEGORY 
 SET 
-CategorySeq=@CategorySeq,
 Category=@Category,
 IsSearchTitle=@IsSearchTitle,
 Type=@Type,
 SearchText=@SearchText,
 NoSearchText=@NoSearchText,
 UpCategorySeq=@UpCategorySeq,
+Number=@Number,
 RegDate=@RegDate,
 ModDate=@ModDate
 WHERE CategorySeq=@CategorySeq
@@ -236,12 +241,25 @@ DELETE FROM T_ARTICLE WHERE Link=@Link
 ", p);
         }
 
+        public int DeleteT_ARTICLE(DateTime enddate)
+        {
+            SqlParamCollection p = new SqlParamCollection();
+            p.Add("@enddate", enddate.ToString("yyyy-MM-dd HH:mm:ss"));
+            return ExecuteNonQuery(@"
+UPDATE T_ARTICLE 
+SET 
+IsDelete = 1,
+ModDate = datetime('now')
+WHERE InfoTime<@enddate AND IsRead=1
+", p);
+        }
+
         public int SelectCountT_ARTICLE(int CategorySeq)
         {
             SqlParamCollection p = new SqlParamCollection();
             p.Add("@CategorySeq", CategorySeq);
             string q = @"
-SELECT COUNT(*) Value FROM T_ARTICLE WHERE CategorySeq=@CategorySeq AND IsDelete = 0
+SELECT COUNT(*) Value FROM T_ARTICLE WHERE CategorySeq=@CategorySeq AND IsRead = 0 AND IsDelete = 0
 ";
             var result = ExecuteDataSetSingle<int>(q, p);
             return result;

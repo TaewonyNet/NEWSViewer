@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.32228.343
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEWSViewer", "NEWSViewer\NEWSViewer.csproj", "{ED7F0A45-A369-43AA-B1BC-16DE47371AD8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaewonyNet.Common", "..\dari\Source\TaewonyNet.Common\TaewonyNet.Common.csproj", "{DFDBEEEF-D21F-4BD1-B338-E9B2DC2DB6A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{ED7F0A45-A369-43AA-B1BC-16DE47371AD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED7F0A45-A369-43AA-B1BC-16DE47371AD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED7F0A45-A369-43AA-B1BC-16DE47371AD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFDBEEEF-D21F-4BD1-B338-E9B2DC2DB6A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFDBEEEF-D21F-4BD1-B338-E9B2DC2DB6A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFDBEEEF-D21F-4BD1-B338-E9B2DC2DB6A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFDBEEEF-D21F-4BD1-B338-E9B2DC2DB6A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

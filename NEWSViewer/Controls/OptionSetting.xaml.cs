@@ -27,9 +27,53 @@ namespace NEWSViewer.Controls
         /// </summary>
         public IDelegate OnOKClicked;
 
+        Global global { get; set; }
+
         public OptionSetting()
         {
             InitializeComponent();
+
+            Button_OK.Click += Button_OK_Click;
+            Button_Cancel.Click += Button_Cancel_Click;
+
+            global = Global.Instance;
+
+            ColorPicker_NoReadColor.SelectedColor = global.NoReadColor;
+            ColorPicker_ReadColor.SelectedColor = global.ReadColor;
+            ColorPicker_HighlightColor.SelectedColor = global.HighlightColor;
+            NumericUpDown_CrawlerOnceCount.Value = global.CrawlerOnceCount;
+            NumericUpDown_CrawlerOnceDay.Value = global.CrawlerOnceDay;
+            NumericUpDown_ReSearchTimeSec.Value = global.ReSearchTimeSec;
+            NumericUpDown_ReadAutoDeleteDay.Value = global.ReadAutoDeleteDay;
+            NumericUpDown_WebPageCacheSec.Value = global.WebPageCacheSec;
+            CheckBox_PreviewRead.IsChecked = global.PreviewRead;
+        }
+
+        private void Button_OK_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = true;
+            if (OnOKClicked != null)
+            {
+                OnOKClicked.Invoke(this);
+            }
+
+            global.NoReadColor = ColorPicker_NoReadColor.SelectedColor.Value;
+            global.ReadColor = ColorPicker_ReadColor.SelectedColor.Value;
+            global.HighlightColor= ColorPicker_HighlightColor.SelectedColor.Value;
+            global.CrawlerOnceCount = (int)NumericUpDown_CrawlerOnceCount.Value.Value;
+            global.CrawlerOnceDay = (int)NumericUpDown_CrawlerOnceDay.Value.Value;
+            global.ReSearchTimeSec = (int)NumericUpDown_ReSearchTimeSec.Value.Value;
+            global.ReadAutoDeleteDay = (int)NumericUpDown_ReadAutoDeleteDay.Value.Value;
+            global.WebPageCacheSec = (int)NumericUpDown_WebPageCacheSec.Value.Value;
+            global.PreviewRead = CheckBox_PreviewRead.IsChecked.Value;
+            global.SetOption();
+
+            Window.Close();
+        }
+
+        private void Button_Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            Window.Close();
         }
 
         public PopupWindow Window { get; set; }

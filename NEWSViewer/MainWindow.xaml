@@ -50,6 +50,12 @@
             <GridSplitter x:Name="GridSplitter_Horizontal" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Bottom" Height="5" HorizontalAlignment="Stretch" />
             <GridSplitter x:Name="GridSplitter_Vertical" Grid.RowSpan="2" Width="5" HorizontalAlignment="Right"/>
             <TreeView x:Name="TreeView_Category" Grid.RowSpan="2" Margin="5 5 10 40">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+                        <Setter Property="IsSelected" Value="{Binding IsSelected}"/>
+                    </Style>
+                </TreeView.ItemContainerStyle>
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                         <StackPanel Orientation="Horizontal">
@@ -91,11 +97,22 @@
             </TreeView>
             <StackPanel Grid.RowSpan="2" HorizontalAlignment="Right"  VerticalAlignment="Bottom" Orientation="Horizontal" Margin="0 0 5 0">
                 <Button x:Name="Button_CategoryAddFolder" HorizontalAlignment="Center" VerticalAlignment="Center" Content="폴더추가" Margin="5 5 5 5"/>
-                <Button x:Name="Button_CategoryAdd" HorizontalAlignment="Center" VerticalAlignment="Center" Content="추가" Margin="0 5 5 5"/>
-                <Button x:Name="Button_CategoryModify" HorizontalAlignment="Center" VerticalAlignment="Center" Content="수정" Margin="0 5 5 5"/>
-                <Button x:Name="Button_CategoryDelete" HorizontalAlignment="Center" VerticalAlignment="Center" Content="삭제" Margin="0 5 5 5"/>
+                <Button x:Name="Button_CategoryAdd" HorizontalAlignment="Center" VerticalAlignment="Center" Content="추가" Margin="0 5 5 5" IsEnabled="False"/>
+                <Button x:Name="Button_CategoryModify" HorizontalAlignment="Center" VerticalAlignment="Center" Content="수정" Margin="0 5 5 5" IsEnabled="False"/>
+                <Button x:Name="Button_CategoryDelete" HorizontalAlignment="Center" VerticalAlignment="Center" Content="삭제" Margin="0 5 5 5" IsEnabled="False"/>
             </StackPanel>
-            <ListView x:Name="ListView_Acticle" Grid.Column="1" Margin="5">
+            <ListView x:Name="ListView_Acticle" Grid.Column="1" Margin="5" IsTextSearchEnabled="False" SelectionMode="Single" VirtualizingStackPanel.IsVirtualizing="False" ScrollViewer.CanContentScroll="False"  VirtualizingStackPanel.VirtualizationMode="Recycling"
+          ScrollViewer.IsDeferredScrollingEnabled="True">
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel>
+                            <!--Less memeory usage-->
+                        </VirtualizingStackPanel>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+                <!--<ListView.CacheMode>
+                    <BitmapCache SnapsToDevicePixels="True"/>
+                </ListView.CacheMode>-->
                 <ListView.ItemContainerStyle>
                     <Style TargetType="{x:Type ListViewItem}">
                         <Setter Property="Background" Value="{Binding Data.IsRead, Converter={StaticResource ArticleHighlightColorConveter}}" />
@@ -121,7 +138,7 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="언론사">
+                        <!--<GridViewColumn Header="언론사">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -129,7 +146,7 @@
                                     </Grid>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
+                        </GridViewColumn>-->
                         <GridViewColumn Header="제목">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
@@ -150,7 +167,7 @@
                         </GridViewColumn>
                     </GridView>
                 </ListView.View>
-                <local:ArticleData>
+                <!--<local:ArticleData>
                     <local:ArticleData.Data>
                         <local:T_ARTICLE Title="[특징주] 뭐시기" Press="언론1" InfoTime="2022-04-12" IsRead="True"/>
                     </local:ArticleData.Data>
@@ -159,7 +176,7 @@
                     <local:ArticleData.Data>
                         <local:T_ARTICLE Title="[특징주] 뭐시기" Press="언론1" InfoTime="2022-04-12"  IsRead="False"/>
                     </local:ArticleData.Data>
-                </local:ArticleData>
+                </local:ArticleData>-->
             </ListView>
             <Grid x:Name="Grid_ArticleContent" Grid.Row="1" Grid.Column="1">
                 <Grid.ColumnDefinitions>

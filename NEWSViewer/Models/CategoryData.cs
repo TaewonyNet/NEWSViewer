@@ -5,10 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using TaewonyNet.Common.Compositions;
 
 namespace NEWSViewer
 {
-    public class CategoryData
+    public class CategoryData : NotifyPropertyBase
     {
         public T_CATEGORY Data { get; set; }
 
@@ -33,6 +34,36 @@ namespace NEWSViewer
         public CategoryData(T_CATEGORY data) : this()
         {
             Data = data;
+        }
+
+        public void Refresh()
+        {
+            NotifyPropertyChanged("Data");
+            NotifyPropertyChanged("Children");
+            NotifyPropertyChanged("Count");
+        }
+
+        private bool? isExpanded;
+
+        public bool? IsExpanded
+        {
+            get { return isExpanded; }
+            set
+            {
+                isExpanded = value;
+                NotifyPropertyChanged();
+            }
+        }
+        private bool? isSelected;
+
+        public bool? IsSelected
+        {
+            get { return isSelected; }
+            set
+            {
+                isSelected = value;
+                NotifyPropertyChanged();
+            }
         }
     }
 }

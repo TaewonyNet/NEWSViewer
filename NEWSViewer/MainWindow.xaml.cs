@@ -35,12 +35,6 @@ namespace NEWSViewer
 
         public List<CategoryData> SearchQueue = new List<CategoryData>();
 
-        public int ArticleMaxCount = 40;
-
-        public int ArticleMaxDay = 7;
-
-        public int ReSearchTimeSec = 300;
-
         private bool isSearchRun;
 
         public bool IsSearchRun
@@ -103,11 +97,9 @@ namespace NEWSViewer
 
             Timer = new Timer();
             Timer.Elapsed += Timer_Elapsed;
-            Timer.Interval = TimeSpan.FromSeconds(0.1).TotalMilliseconds;
+            Timer.Interval = TimeSpan.FromSeconds(0.05).TotalMilliseconds;
             Timer.Start();
 
-            Configuration.UseLocalApplicationData = true;
-            Configuration.Self = new Configuration();
             var config = Configuration.Self.GetXMLToSerialize();
             if (config == null)
             {
@@ -182,10 +174,7 @@ namespace NEWSViewer
             {
                 var art = ListView_Acticle.SelectedItem as ArticleData;
                 Process.Start(art.Data.Link);
-                art.Data.IsRead = true;
-                art.Data.ReadDate = DateTime.Now;
-                ListView_Acticle.Items.Refresh();
-                SqlManager.Instance.InsertT_ARTICLE(new[] { art.Data });
+                ReadArticle(new[] { art });
             }
         }
 
@@ -207,7 +196,7 @@ namespace NEWSViewer
                         if (string.IsNullOrEmpty(cate.Data.SearchText) == false)
                         {
                             List<T_ARTICLE> list = new List<T_ARTICLE>();
-                            DateTime betime = DateTime.Now.AddDays(-ArticleMaxDay);
+                            DateTime betime = DateTime.Now.AddDays(-Global.Instance.CrawlerOnceDay);
                             string search = cate.Data.SearchText;
                             if (string.IsNullOrEmpty(cate.Data.NoSearchText) == false)
                             {
@@ -223,37 +212,32 @@ namespace NEWSViewer
                             var barts = SqlManager.Instance.SelectT_ARTICLE(cate.Data.CategorySeq);
                             do
                             {
-                                if (cate.Data.IsSearchTitle == true)
+                                var arts = await Global.Instance.WebDownloadManager.NaverNewsSearch(
+                                    search,
+                                    cate.Data.IsSearchTitle,
+                                    betime,
+                                    DateTime.Now,
+                                    page);
+                                if (arts != null && arts.Item1 != null && arts.Item1.Count > 0)
                                 {
-                                    var arts = await Global.Instance.WebDownloadManager.NaverSearchStock(search, page);
-                                    if (arts != null)
-                                    {
-                                        list.AddRange(arts);
-                                    }
-                                    else
+                                    list.AddRange(arts.Item1);
+                                    if (arts.Item2 == page)
                                     {
                                         break;
                                     }
                                 }
                                 else
                                 {
-                                    var arts = await Global.Instance.WebDownloadManager.NaverSearch(search, page);
-                                    if (arts != null)
-                                    {
-                                        list.AddRange(arts);
-                                    }
-                                    else
-                                    {
-                                        break;
-                                    }
+                                    break;
                                 }
                                 page++;
                             }
-                            while (list.Count <= ArticleMaxCount && list.Min(f => f.InfoTime) > betime);
+                            while (list.Count > 0 && list.Count <= Global.Instance.CrawlerOnceCount && list.Min(f => f.InfoTime) > betime);
 
                             for (int i = list.Count - 1; i >= 0; i--)
                             {
-                                if (barts.FirstOrDefault(f => f.Link == list[i].Link) != null)
+                                if ((barts.FirstOrDefault(f => f.Link == list[i].Link) != null) ||
+                                    (list[i].InfoTime <= betime))
                                 {
                                     list.RemoveAt(i);
                                 }
@@ -266,14 +250,14 @@ namespace NEWSViewer
                             }
                             SqlManager.Instance.InsertT_ARTICLE(list);
                             cate.Count = SqlManager.Instance.SelectCountT_ARTICLE(cate.Data.CategorySeq);
+                            cate.Refresh();
                         }
-                        this.Dispatcher.Invoke(() =>
+                        ProgressBar_Search.Dispatcher.Invoke(() =>
                         {
-                            TreeView_Category.Items.Refresh();
                             ProgressBar_Search.Value += 1;
                             if (ProgressBar_Search.Value == ProgressBar_Search.Maximum)
                             {
-                                LastRefreshTime = DateTime.Now.AddSeconds(ReSearchTimeSec);
+                                LastRefreshTime = DateTime.Now.AddSeconds(Global.Instance.ReSearchTimeSec);
                                 TextBlock_Search.Text = "재검색 " + LastRefreshTime.ToString("HH:mm:ss");
                             }
                         });
@@ -293,23 +277,27 @@ namespace NEWSViewer
             if (e.AddedItems.Count > 0 && e.AddedItems[0] is ArticleData)
             {
                 Button_ArticleLink.Visibility = Visibility.Visible;
-                var data = e.AddedItems[0] as ArticleData;
-                Button_ArticleLink.Tag = data.Data.Link;
-                TextBlock_Press.Text = data.Data.Press;
-                TextBlock_InfoTime.Text = data.Data.InfoTime.ToString("yyyy-MM-dd HH:mm:ss");
-                TextBlock title = data.GetHighlightText(data.Data.Title);
+                var art = e.AddedItems[0] as ArticleData;
+                Button_ArticleLink.Tag = art.Data.Link;
+                TextBlock_Press.Text = art.Data.Press;
+                TextBlock_InfoTime.Text = art.Data.InfoTime.ToString("yyyy-MM-dd HH:mm:ss");
+                TextBlock title = art.GetHighlightText(art.Data.Title);
                 title.TextWrapping = TextWrapping.WrapWithOverflow;
                 RichTextBox_ArticleHeader.Content = title;
-                TextBlock desc = data.GetHighlightText(data.Data.Description);
+                TextBlock desc = art.GetHighlightText(art.Data.Description);
                 desc.TextWrapping = TextWrapping.WrapWithOverflow;
                 RichTextBox_Article.Content = desc;
-                if (string.IsNullOrEmpty(data.Data.ImageUrl) == false)
+                if (string.IsNullOrEmpty(art.Data.ImageUrl) == false)
                 {
-                    Image_Article.Source = new BitmapImage(new Uri(data.Data.ImageUrl));
+                    Image_Article.Source = new BitmapImage(new Uri(art.Data.ImageUrl));
                 }
                 else
                 {
                     Image_Article.Source = null;
+                }
+                if (Global.Instance.PreviewRead == true)
+                {
+                    ReadArticle(new[] { art });
                 }
                 Grid_ArticleContent.UpdateLayout();
             }
@@ -326,7 +314,7 @@ namespace NEWSViewer
                 });
                 foreach (var folder in CategoryDatas)
                 {
-                    foreach(var cate in folder.Children)
+                    foreach (var cate in folder.Children)
                     {
                         rows.Add(new object[]
                         {
@@ -385,9 +373,11 @@ namespace NEWSViewer
                             cate = new CategoryData(data);
                             folder.Children.Add(cate);
                         }
+                        folder.Refresh();
+                        cate.Refresh();
                     }
                 }
-                TreeView_Category.Items.Refresh();
+                //TreeView_Category.Items.Refresh();
             }
         }
 
@@ -395,15 +385,52 @@ namespace NEWSViewer
         {
             if (ArticleDatas.Count > 0)
             {
-                List<T_ARTICLE> list = new List<T_ARTICLE>();
-                foreach(var art in ArticleDatas.Where(f=>f.Data.IsRead == false))
+                ReadArticle(ArticleDatas);
+                //ListView_Acticle.Items.Refresh();
+            }
+        }
+
+        private void ReadArticle(IEnumerable<ArticleData> datas)
+        {
+            if (datas == null || datas.Count() == 0)
+            {
+                return;
+            }
+            var arts = datas.Where(f => f.Data.IsRead == false).ToArray();
+            for (int i = arts.Length - 1; i >= 0; i--)
+            {
+                var art = arts[i];
+                art.Data.IsRead = true;
+                art.Data.ReadDate = DateTime.Now;
+                if (Global.Instance.ReadAutoDeleteDay == 0)
                 {
-                    art.Data.IsRead = true;
-                    art.Data.ReadDate = DateTime.Now;
-                    list.Add(art.Data);
+                    art.Data.IsDelete = true;
+                    ArticleDatas.Remove(art);
                 }
-                SqlManager.Instance.InsertT_ARTICLE(list);
-                ListView_Acticle.Items.Refresh();
+                else
+                {
+                    art.Refresh();
+                }
+                SqlManager.Instance.InsertT_ARTICLE(new[] { art.Data });
+            }
+            if (Global.Instance.ReadAutoDeleteDay > 0)
+            {
+                SqlManager.Instance.DeleteT_ARTICLE(DateTime.Now.AddDays(Global.Instance.ReadAutoDeleteDay));
+            }
+
+            var cate = TreeView_Category.SelectedItem as CategoryData;
+            if (cate.Data.UpCategorySeq == null)
+            {
+                foreach (var scate in cate.Children)
+                {
+                    scate.Count = SqlManager.Instance.SelectCountT_ARTICLE(scate.Data.CategorySeq);
+                    scate.Refresh();
+                }
+            }
+            else
+            {
+                cate.Count = SqlManager.Instance.SelectCountT_ARTICLE(cate.Data.CategorySeq);
+                cate.Refresh();
             }
         }
 
@@ -437,6 +464,7 @@ namespace NEWSViewer
             });
             Searching = false;
             IsSearchRun = true;
+            LastRefreshTime = DateTime.Now;
         }
 
         private void Button_Option_Click(object sender, RoutedEventArgs e)
@@ -469,13 +497,11 @@ namespace NEWSViewer
                         arts.Add(new ArticleData(item));
                     }
                 }
-                else 
+                else
                 {
                     if (data.Data.UpCategorySeq != null)
                     {
                         // 검색어
-                        Button_CategoryAdd.IsEnabled = true;
-
                         var list = SqlManager.Instance.SelectT_ARTICLE(data.Data.CategorySeq);
                         foreach (var item in list)
                         {
@@ -485,6 +511,8 @@ namespace NEWSViewer
                     else
                     {
                         // 폴더
+                        Button_CategoryAdd.IsEnabled = true;
+
                         var list = SqlManager.Instance.SelectT_ARTICLE(
                             data.Children.Select(f => f.Data.CategorySeq)
                             );
@@ -507,6 +535,7 @@ namespace NEWSViewer
                         arts.Remove(sart);
                         sart.Data.IsDelete = true;
                         sart.Data.ModDate = DateTime.Now;
+                        i--;
                     }
                 }
 
@@ -518,9 +547,10 @@ namespace NEWSViewer
             }
 
             ArticleDatas.Clear();
-            foreach (var art in arts.OrderByDescending(f=>f.Data.InfoTime))
+            foreach (var art in arts.OrderByDescending(f => f.Data.InfoTime))
             {
                 ArticleDatas.Add(art);
+                //art.Refresh();
             }
         }
 
@@ -559,20 +589,60 @@ namespace NEWSViewer
                         data.Count = SqlManager.Instance.SelectCountT_ARTICLE(data.Data.CategorySeq);
                     }
                 }
+                data.Refresh();
             }
-            TreeView_Category.Items.Refresh();
+            //TreeView_Category.Items.Refresh();
+            SelectedTreeViewItem(CategoryDatas.First());
+            //var tvi = TreeView_Category.ItemContainerGenerator.ContainerFromItem(CategoryDatas.First())
+            //          as TreeViewItem;
+            //if (tvi != null)
+            //{
+            //    tvi.IsSelected = true;
+            //}
 
             SearchStart();
         }
+
+        private void SelectedTreeViewItem(CategoryData data)
+        {
+            CategoryData sel = TreeView_Category.SelectedItem as CategoryData;
+            if (sel == data)
+            {
+                return;
+            }
+            CategoryData seled = CategoryDatas.FirstOrDefault(f =>
+                                            f.IsSelected == true ||
+                                            f.Children.FirstOrDefault(f2 => f2.IsSelected == true) != null);
+            CategoryData subseled = null;
+            if (seled != null)
+            {
+                seled.IsSelected = false;
+                subseled = seled.Children.FirstOrDefault(f2 => f2.IsSelected == true);
+                if (subseled != null)
+                {
+                    subseled.IsSelected = false;
+                }
+            }
+            data.IsSelected = true;
+        }
+
         private void Button_CategoryAddFolder_Click(object sender, RoutedEventArgs e)
         {
             CategoryAdd uc = new CategoryAdd(null);
             PopupWindow window = new PopupWindow(uc);
             uc.OnOKClicked = (s) =>
             {
+                var before = CategoryDatas.FirstOrDefault(f => f.Data.Category == uc.Data.Data.Category);
+                if (before != null)
+                {
+                    Global.Instance.Alert("이미 등록된 폴더명입니다.");
+                    SelectedTreeViewItem(before);
+                    return;
+                }
                 var d = SqlManager.Instance.InsertT_CATEGORY(uc.Data.Data);
                 uc.Data.Data = d;
                 CategoryDatas.Add(uc.Data);
+                uc.Data.Refresh();
             };
         }
 
@@ -584,13 +654,21 @@ namespace NEWSViewer
                 Global.Instance.Alert("항목을 선택 후 추가해주세요.");
                 return;
             }
-            CategoryAdd uc = new CategoryAdd(null, data.Data.UpCategorySeq);
+            CategoryAdd uc = new CategoryAdd(null, data.Data.CategorySeq);
             PopupWindow window = new PopupWindow(uc);
             uc.OnOKClicked = (s) =>
             {
+                var before = data.Children.FirstOrDefault(f => f.Data.SearchText == uc.Data.Data.SearchText);
+                if (before != null)
+                {
+                    Global.Instance.Alert("이미 등록된 검색어입니다.");
+                    SelectedTreeViewItem(before);
+                    return;
+                }
                 var d = SqlManager.Instance.InsertT_CATEGORY(uc.Data.Data);
                 uc.Data.Data = d;
                 data.Children.Add(uc.Data);
+                uc.Data.Refresh();
             };
         }
 
@@ -606,7 +684,32 @@ namespace NEWSViewer
             PopupWindow window = new PopupWindow(uc);
             uc.OnOKClicked = (s) =>
             {
+                if (data.Data.UpCategorySeq == null)
+                {
+                    var before = CategoryDatas.FirstOrDefault(f => f.Data.Category == uc.Data.Data.Category);
+                    if (before != null)
+                    {
+                        Global.Instance.Alert("이미 등록된 검색어입니다.");
+                        SelectedTreeViewItem(before);
+                        return;
+                    }
+                }
+                else
+                {
+                    var before = CategoryDatas.FirstOrDefault(f => f.Data.CategorySeq == uc.Data.Data.UpCategorySeq);
+                    if (before != null)
+                    {
+                        before = before.Children.FirstOrDefault(f => f.Data.SearchText == uc.Data.Data.SearchText);
+                        if (before != null)
+                        {
+                            Global.Instance.Alert("이미 등록된 검색어입니다.");
+                            SelectedTreeViewItem(before);
+                            return;
+                        }
+                    }
+                }
                 SqlManager.Instance.UpdateT_CATEGORY(uc.Data.Data);
+                uc.Data.Refresh();
             };
         }
 
@@ -656,28 +759,6 @@ namespace NEWSViewer
         private void Button_Folder_Click(object sender, RoutedEventArgs e)
         {
             Process.Start(Global.BasePath);
-        }
-
-        public async void search()
-        {
-            List<T_ARTICLE> list = new List<T_ARTICLE>();
-            var l1 = await Global.Instance.WebDownloadManager.NaverSearch("특징주");
-            list.AddRange(l1);
-            var l2 = await Global.Instance.WebDownloadManager.NaverSearchStock("특징주");
-            list.AddRange(l2);
-
-            SqlManager.Instance.InsertT_ARTICLE(list);
-
-            var acts = SqlManager.Instance.SelectT_ARTICLE();
-            if (acts != null)
-            {
-
-            }
-            else
-            {
-
-            }
-
         }
     }
 }

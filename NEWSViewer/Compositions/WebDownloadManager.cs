@@ -5,16 +5,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaewonyNet.Common.Compositions;
+using TaewonyNet.Common.Interfaces;
 
 namespace NEWSViewer.Compositions
 {
     public class WebDownloadManager : WebDownloadHelper
     {
-        public double Cache = TimeSpan.FromSeconds(10).TotalDays;
+        public double Cache = TimeSpan.FromSeconds(60).TotalDays;
 
-        public const string url_naver_search = "https://m.search.naver.com/search.naver?where=m_news&query={0}&sort=1&sm=tab_smr&nso=so:dd,p:all,a:all&start={1}";
+        public const string url_naver_search_desc_m = "https://m.search.naver.com/search.naver?where=m_news&query={0}&sm=tab_opt&sort=1&photo=0&field=1&nso=so:dd,p:all&start={1}";
+        public const string url_naver_search_m = "https://m.search.naver.com/search.naver?where=m_news&query={0}&sort=1&sm=tab_smr&nso=so:dd,p:all,a:all&start={1}";
 
-        public const string url_naver_search_stock = "https://m.search.naver.com/search.naver?where=m_news&query={0}&sm=tab_opt&sort=1&photo=0&field=1&nso=so:dd,p:all&start={1}";
+        //https://search.naver.com/search.naver?where=news&sm=tab_pge&query=%ED%8A%B9%EC%A7%95%EC%A3%BC&sort=1&photo=0&field=1&pd=3&ds=2022.04.01&de=2022.04.05&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from20220401to20220405,a:t&start=41 네이버 뉴스 검색 제목위주
+        //https://search.naver.com/search.naver?where=news&sm=tab_pge&query=%ED%8A%B9%EC%A7%95%EC%A3%BC&sort=1&photo=0&field=0&pd=3&ds=2022.04.01&de=2022.04.05&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from20220401to20220405,a:t&start=41 네이버 뉴스 검색 
+
+        public string[] file_naver_news_search = {
+            "https://search.naver.com/search.naver?where=news&sm=tab_pge&query=",
+            "&sort=1&photo=0&field=", "&pd=3&ds=",
+            "&de=", "&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from",
+            "to", ",a:t&start=",
+        };
+        public const string url_naver_news_search = "https://search.naver.com/search.naver?where=news&sm=tab_pge&query={0}&sort=1&photo=0&field={1}&pd=3&ds={2:yyyy-MM-dd}&de={3:yyyy-MM-dd}&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from{2:yyyyMMdd}to{3:yyyyMMdd},a:t&start={4}";
+
 
         public WebDownloadManager(int threadcount = 2, int maxaction = 85, int period = 60, string path = "") : base(threadcount, maxaction, period)
         {
@@ -28,79 +40,107 @@ namespace NEWSViewer.Compositions
                 System.IO.Directory.CreateDirectory(dir);
             }
             DataDirectory = dir;
+
+            OnCacheFileName = new IDelegate<string, string>(GetFileName);
         }
 
-        public async Task<List<T_ARTICLE>> NaverSearch(string text, int page = 1)
+        private string GetFileName(object sender, string args)
         {
-            var url = string.Format(url_naver_search, text, page * 15 + 1);
-            var bt = await WebClinetDownloadAsync(url, null, Cache);
-            var html = Encoding.UTF8.GetString(bt);
-            return GetItems(html);
+            if ((args.IndexOf(file_naver_news_search[1]) > -1) 
+                && (args.IndexOf(file_naver_news_search[4]) > -1))
+            {
+                foreach(var part in file_naver_news_search)
+                {
+                    args = args.Replace(part, " ");
+                }
+                return System.IO.Path.Combine(DataDirectory, "file_naver_news_search" + args + ".dat");
+            }
+            return System.IO.Path.Combine(DataDirectory, System.Web.HttpUtility.UrlEncode(args) + ".dat");
         }
 
-        public async Task<List<T_ARTICLE>> NaverSearchStock(string text, int page = 1)
+        public async Task<Tuple<List<T_ARTICLE>, int>> NaverNewsSearch(string text, bool titleonly, DateTime dtstart, DateTime dtend, int page = 1)
         {
-            var url = string.Format(url_naver_search_stock, text, page * 15 + 1);
-            var bt = await WebClinetDownloadAsync(url, null, Cache);
-            var html = Encoding.UTF8.GetString(bt);
-            return GetItems(html);
+            var url = string.Format(url_naver_news_search, text, titleonly ? 1 : 0, dtstart, dtend, (page - 1) * 10 + 1);
+            var bt = await WebClinetDownloadAsync(url, null, TimeSpan.FromSeconds(Global.Instance.WebPageCacheSec).TotalDays);
+            if (bt != null)
+            {
+                var html = Encoding.UTF8.GetString(bt);
+                return GetItems(html);
+            }
+            else
+            {
+                Log.Error("NaverNewsSearch Url:{0} Error:{1}", url, "Download Failed");
+                return null;
+            }
         }
 
-        public List<T_ARTICLE> GetItems(string html)
+        public Tuple<List<T_ARTICLE>, int> GetItems(string html)
         {
-            List<T_ARTICLE> result = new List<T_ARTICLE>();
+            int nextpage = 0;
+            List<T_ARTICLE> arts = new List<T_ARTICLE>();
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
-            var section = doc.DocumentNode.SelectSingleNode("//section[@class=\"sc sp_nnews _prs_nws\"]");
-            foreach (var news_wrap in section.SelectNodes("//div[@class=\"news_wrap\"]"))
+            var section = doc.DocumentNode.SelectSingleNode("//div[@class=\"group_news\"]");
+            if (section!= null)
             {
-                try
+                foreach (var news_wrap in section.SelectNodes(".//div[@class=\"news_area\"]"))
                 {
-                    T_ARTICLE act = new T_ARTICLE();
-                    var info_press = news_wrap.SelectSingleNode(".//a[@class=\"info press\"]");
-                    act.Press = HtmlEntity.DeEntitize(info_press.InnerText.Trim());
-                    act.PressLink = info_press.Attributes["href"].Value.Trim();
-                    var info = news_wrap.SelectSingleNode(".//span[@class=\"info\"]");
-                    string datestring = info.InnerText.Trim();
-                    var imin = datestring.IndexOf("분");
-                    var ihour = datestring.IndexOf("시간");
-                    var iday = datestring.IndexOf("일");
-                    DateTime date = DateTime.Now;
-                    if (imin > -1)
+                    try
                     {
-                        act.InfoTime = date.AddMinutes(-int.Parse(datestring.Remove(imin)));
+                        T_ARTICLE act = new T_ARTICLE();
+                        var info_press = news_wrap.SelectSingleNode(".//a[@class=\"info press\"]");
+                        act.Press = HtmlEntity.DeEntitize(info_press.InnerText.Trim());
+                        act.PressLink = info_press.Attributes["href"].Value.Trim();
+                        var info = news_wrap.SelectNodes(".//span[@class=\"info\"]").Last();
+                        string datestring = info.InnerText.Trim();
+                        var imin = datestring.IndexOf("분");
+                        var ihour = datestring.IndexOf("시간");
+                        var iday = datestring.IndexOf("일");
+                        DateTime date = DateTime.Now;
+                        if (imin > -1)
+                        {
+                            act.InfoTime = date.AddMinutes(-int.Parse(datestring.Remove(imin)));
+                        }
+                        else if (ihour > -1)
+                        {
+                            act.InfoTime = date.AddHours(-int.Parse(datestring.Remove(ihour)));
+                        }
+                        else if (iday > -1)
+                        {
+                            act.InfoTime = date.AddDays(-int.Parse(datestring.Remove(iday)));
+                        }
+                        else
+                        {
+                            act.InfoTime = DateTime.Parse(datestring);
+                        }
+                        var news_tit = news_wrap.SelectSingleNode(".//a[@class=\"news_tit\"]");
+                        act.Title = HtmlEntity.DeEntitize(news_tit.InnerText.Trim());
+                        act.Link = news_tit.Attributes["href"].Value.Trim();
+                        var news_dsc = news_wrap.SelectSingleNode(".//div[@class=\"news_dsc\"]");
+                        act.Description = HtmlEntity.DeEntitize(news_dsc.InnerText.Trim());
+                        var img = news_wrap.SelectSingleNode("//a[@target=\"_blank\"]/img");
+                        if (img != null)
+                        {
+                            act.ImageUrl = img.Attributes["src"].Value.Trim();
+                        }
+                        arts.Add(act);
                     }
-                    else if (ihour > -1)
+                    catch (Exception ex)
                     {
-                        act.InfoTime = date.AddHours(-int.Parse(datestring.Remove(ihour)));
+                        Log.Error("Error {0}", ex);
                     }
-                    else if (iday > -1)
-                    {
-                        act.InfoTime = date.AddDays(-int.Parse(datestring.Remove(iday)));
-                    }
-                    else
-                    {
-                        act.InfoTime = DateTime.Parse(datestring);
-                    }
-                    var news_tit = news_wrap.SelectSingleNode(".//a[@class=\"news_tit\"]");
-                    act.Link = news_tit.Attributes["href"].Value.Trim();
-                    act.Title = HtmlEntity.DeEntitize(news_tit.InnerText.Trim());
-                    var news_dsc = news_wrap.SelectSingleNode(".//div[@class=\"news_dsc\"]");
-                    var img = news_dsc.SelectSingleNode(".//img[@src]");
-                    if (img != null)
-                    {
-                        act.ImageUrl = img.Attributes["src"].Value.Trim();
-                    }
-                    act.Description = HtmlEntity.DeEntitize(news_dsc.InnerText.Trim());
-                    result.Add(act);
                 }
-                catch(Exception ex)
+                var pages = doc.DocumentNode.SelectNodes("//div[@class=\"sc_page_inner\"]/a");
+                if (pages != null)
                 {
-                    Log.Error("Error {0}", ex);
+                    int page = 0;
+                    if (int.TryParse(pages.Last().InnerText, out page) == true)
+                    {
+                        nextpage = page;
+                    }
                 }
             }
-            //var sp_page = doc.DocumentNode.SelectSingleNode("//[@class=\"sp_page\"]");
-            return result;
+            return new Tuple<List<T_ARTICLE>, int>(arts, nextpage);
         }
     }
 }

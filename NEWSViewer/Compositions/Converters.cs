@@ -92,11 +92,11 @@ namespace NEWSViewer.Compositions
                 // 읽기 여부
                 if (value.Equals(false))
                 {
-                    return new SolidColorBrush(Global.Instance.ArticleHighlightColor);
+                    return new SolidColorBrush(Global.Instance.NoReadColor);
                 }
                 else
                 {
-                    return new SolidColorBrush(Global.Instance.ArticleColor);
+                    return new SolidColorBrush(Global.Instance.ReadColor);
                 }
             }
             return null;
