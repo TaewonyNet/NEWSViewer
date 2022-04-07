@@ -46,6 +46,7 @@ namespace NEWSViewer.Controls
             NumericUpDown_ReSearchTimeSec.Value = global.ReSearchTimeSec;
             NumericUpDown_ReadAutoDeleteDay.Value = global.ReadAutoDeleteDay;
             NumericUpDown_WebPageCacheSec.Value = global.WebPageCacheSec;
+            NumericUpDown_TitleFontSize.Value = global.TitleFontSize;
             CheckBox_PreviewRead.IsChecked = global.PreviewRead;
         }
 
@@ -65,6 +66,7 @@ namespace NEWSViewer.Controls
             global.ReSearchTimeSec = (int)NumericUpDown_ReSearchTimeSec.Value.Value;
             global.ReadAutoDeleteDay = (int)NumericUpDown_ReadAutoDeleteDay.Value.Value;
             global.WebPageCacheSec = (int)NumericUpDown_WebPageCacheSec.Value.Value;
+            global.TitleFontSize = (int)NumericUpDown_TitleFontSize.Value.Value;
             global.PreviewRead = CheckBox_PreviewRead.IsChecked.Value;
             global.SetOption();
 

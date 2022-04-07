@@ -44,6 +44,7 @@ namespace NEWSViewer
 
             Loaded += Alert_Loaded;
             Button_OK.Click += Button_OK_Click;
+            Button_OK.Focus();
 
             Label_message.Content = message;
         }

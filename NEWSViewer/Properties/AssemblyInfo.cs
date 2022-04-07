@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("NEWSViewer")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("NEWSViewer")]
 [assembly: AssemblyProduct("NEWSViewer")]
-[assembly: AssemblyCopyright("Copyright ©  2022")]
+[assembly: AssemblyCopyright("Copyright ©  2022 kingtw@nate.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -25,7 +25,7 @@ namespace NEWSViewer.Compositions
             "&de=", "&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from",
             "to", ",a:t&start=",
         };
-        public const string url_naver_news_search = "https://search.naver.com/search.naver?where=news&sm=tab_pge&query={0}&sort=1&photo=0&field={1}&pd=3&ds={2:yyyy-MM-dd}&de={3:yyyy-MM-dd}&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from{2:yyyyMMdd}to{3:yyyyMMdd},a:t&start={4}";
+        public const string url_naver_news_search = "https://search.naver.com/search.naver?where=news&sm=tab_pge&query={0}&sort=1&photo=0&field={1}&pd=3&ds={2:yyyy.MM.dd}&de={3:yyyy.MM.dd}&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from{2:yyyyMMdd}to{3:yyyyMMdd},a:t&start={4}";
 
 
         public WebDownloadManager(int threadcount = 2, int maxaction = 85, int period = 60, string path = "") : base(threadcount, maxaction, period)
@@ -88,9 +88,13 @@ namespace NEWSViewer.Compositions
                     try
                     {
                         T_ARTICLE act = new T_ARTICLE();
-                        var info_press = news_wrap.SelectSingleNode(".//a[@class=\"info press\"]");
+                        var info_press = news_wrap.SelectSingleNode(".//*[@class=\"info press\"]");
                         act.Press = HtmlEntity.DeEntitize(info_press.InnerText.Trim());
-                        act.PressLink = info_press.Attributes["href"].Value.Trim();
+                        var info_press_href = news_wrap.SelectSingleNode(".//*[@class=\"info press\"][@href]");
+                        if (info_press_href != null)
+                        {
+                            act.PressLink = info_press_href.Attributes["href"].Value.Trim();
+                        }
                         var info = news_wrap.SelectNodes(".//span[@class=\"info\"]").Last();
                         string datestring = info.InnerText.Trim();
                         var imin = datestring.IndexOf("분");

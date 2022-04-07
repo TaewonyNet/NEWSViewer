@@ -7,13 +7,13 @@
         xmlns:local="clr-namespace:NEWSViewer"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" xmlns:controlzex="urn:controlzex" xmlns:System="clr-namespace:System;assembly=mscorlib" x:Name="window" x:Class="NEWSViewer.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="NEWSViewer" Height="450" Width="800">
     <Window.Resources>
         <convert:NonzeroToVisibility x:Key="NonzeroToVisibility"/>
         <convert:NotNullToVisibility x:Key="NotNullToVisibility"/>
         <convert:ArticleHighlightColorConveter x:Key="ArticleHighlightColorConveter"/>
         <convert:DateTimeStringConveter x:Key="DateTimeStringConveter"/>
-        <convert:TrueParamConverter x:Key="TrueParamConverter"/>
+        <convert:TrueFontBoldConverter x:Key="TrueFontBoldConverter"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -27,6 +27,8 @@
         </StackPanel>
         <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
             <Button x:Name="Button_ReadAll" Content="전체읽기" Margin="0 5 5 5"/>
+            <Button x:Name="Button_ReadDelete" Content="읽은뉴스삭제" Margin="0 5 5 5"/>
+            <Button x:Name="Button_BeforeDelete" Content="이전뉴스삭제" Margin="0 5 5 5"/>
             <Button x:Name="Button_Search" Content="검색시작" Margin="0 5 5 5"/>
             <Grid Width="100" Margin="0 5 5 5" >
                 <ProgressBar x:Name="ProgressBar_Search" Value="100" />
@@ -37,7 +39,7 @@
         <StackPanel Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Horizontal">
             <Button x:Name="Button_Folder" Content="DB폴더열기" Margin="5 5 5 5"/>
         </StackPanel>
-        <TextBlock Grid.Row="2" HorizontalAlignment="Right" Margin="0 0 10 0" VerticalAlignment="Center"><Run Text="Copyright © 2022 All rights reserved by"/><Run Text=" "/><Run Text="kingtw@nate.com" FontWeight="Bold"/></TextBlock>
+        <TextBlock Grid.Row="2" HorizontalAlignment="Right" Margin="0 0 10 0" VerticalAlignment="Center"><Run Text="Copyright © 2022 All rights reserved by"/><Run Text=" "/><Hyperlink x:Name="Hyperlink_Contact" NavigateUri=""><Run Text="kingtw@nate.com" FontWeight="Bold"/></Hyperlink></TextBlock>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ColumnDefinition_With" Width="200" MinWidth="200"/>
@@ -61,7 +63,7 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Data.Category}"/>
                             <TextBlock Text="{Binding Data.SearchText}"/>
-                            <StackPanel Orientation="Horizontal" Visibility="{Binding Count, Converter={StaticResource NotNullToVisibility}}">
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding Data.UpCategorySeq, Converter={StaticResource NotNullToVisibility}}">
                                 <TextBlock Text="("/>
                                 <TextBlock Text="{Binding Count}"/>
                                 <TextBlock Text=")"/>
@@ -101,15 +103,25 @@
                 <Button x:Name="Button_CategoryModify" HorizontalAlignment="Center" VerticalAlignment="Center" Content="수정" Margin="0 5 5 5" IsEnabled="False"/>
                 <Button x:Name="Button_CategoryDelete" HorizontalAlignment="Center" VerticalAlignment="Center" Content="삭제" Margin="0 5 5 5" IsEnabled="False"/>
             </StackPanel>
-            <ListView x:Name="ListView_Acticle" Grid.Column="1" Margin="5" IsTextSearchEnabled="False" SelectionMode="Single" VirtualizingStackPanel.IsVirtualizing="False" ScrollViewer.CanContentScroll="False"  VirtualizingStackPanel.VirtualizationMode="Recycling"
-          ScrollViewer.IsDeferredScrollingEnabled="True">
+            <ListView x:Name="ListView_Acticle" Grid.Column="1" Margin="5" IsTextSearchEnabled="False" SelectionMode="Single" >
+
+                <!--VirtualizingStackPanel.IsVirtualizing="True" 
+                      ScrollViewer.CanContentScroll="True"  
+                      VirtualizingStackPanel.VirtualizationMode="Recycling"
+                      ScrollViewer.IsDeferredScrollingEnabled="True">
                 <ListView.ItemsPanel>
                     <ItemsPanelTemplate>
+                        <VirtualizingStackPanel/>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>-->
+                
+                <!--<ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
                         <VirtualizingStackPanel>
-                            <!--Less memeory usage-->
+                            --><!--Less memeory usage--><!--
                         </VirtualizingStackPanel>
                     </ItemsPanelTemplate>
-                </ListView.ItemsPanel>
+                </ListView.ItemsPanel>-->
                 <!--<ListView.CacheMode>
                     <BitmapCache SnapsToDevicePixels="True"/>
                 </ListView.CacheMode>-->
@@ -120,6 +132,16 @@
                 </ListView.ItemContainerStyle>
                 <ListView.View>
                     <GridView>
+                        <GridViewColumn Header="제목">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <ContentPresenter Content="{Binding Title}" TextBlock.FontWeight="{Binding Data.IsRead, Converter={StaticResource TrueFontBoldConverter}}"/>
+                                        <!--<ContentPresenter Content="{Binding Title2}" TextBlock.FontWeight="{Binding Data.IsRead, Converter={StaticResource TrueParamConverter}, ConverterParameter=Bold}"/>-->
+                                    </Grid>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                         <GridViewColumn Header="수집시간">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
@@ -129,7 +151,7 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="날짜">
+                        <GridViewColumn Header="기사입력시간">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -147,15 +169,6 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>-->
-                        <GridViewColumn Header="제목">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <ContentPresenter Content="{Binding Title}" TextBlock.FontWeight="{Binding Data.IsRead, Converter={StaticResource TrueParamConverter}, ConverterParameter=Bold}"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
                         <GridViewColumn Header="읽음">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>

@@ -160,4 +160,31 @@ namespace NEWSViewer.Compositions
         #endregion
     }
     #endregion
+
+    #region TrueFontBoldConverter
+    public class TrueFontBoldConverter : IValueConverter
+    {
+        #region IValueConverter 멤버
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value != null && value is bool)
+            {
+                if (value.Equals(false))
+                {
+                    return FontWeights.Bold;
+                }
+                return FontWeights.Bold;
+            }
+            return null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return null;
+        }
+
+        #endregion
+    }
+    #endregion
 }

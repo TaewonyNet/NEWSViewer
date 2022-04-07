@@ -39,8 +39,36 @@ namespace NEWSViewer
             Configuration.UseLocalApplicationData = true;
             Configuration.Self = new Configuration();
             var datapath = System.IO.Path.Combine(BasePath, "data");
+            var logpath = System.IO.Path.Combine(BasePath, "logs");
             WebDownloadManager = new WebDownloadManager(2, 100, 60, datapath);
             GetOption();
+
+            System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback((o) => {
+                DeleteLog(datapath, logpath);
+            }));
+        }
+
+        private static void DeleteLog(string datapath, string logpath)
+        {
+            DateTime deldate = DateTime.Now.AddDays(-Global.Instance.ReadAutoDeleteDay - 3);
+
+            foreach (var path in new[] { datapath, logpath })
+            {
+                foreach (var file in new System.IO.DirectoryInfo(path).GetFiles())
+                {
+                    if (file.CreationTime < deldate)
+                    {
+                        try
+                        {
+                            file.Delete();
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error("ClearData data Error {0} {1}", file.Name, ex);
+                        }
+                    }
+                }
+            }
             SqlManager.Instance.DeleteT_ARTICLE(DateTime.Now.AddDays(Global.Instance.ReadAutoDeleteDay));
         }
 
@@ -131,9 +159,9 @@ namespace NEWSViewer
         }
 
         public string[] OptionKeys = new[] {
-            "NoReadColor" ,"ReadColor", "HighlightColor", "CrawlerOnceCount", "CrawlerOnceDay", "ReSearchTimeSec", "ReadAutoDeleteDay", "WebPageCacheSec", "PreviewRead"
+            "NoReadColor" ,"ReadColor", "HighlightColor", "CrawlerOnceCount", "CrawlerOnceDay", "ReSearchTimeSec", "ReadAutoDeleteDay", "WebPageCacheSec", "PreviewRead", "TitleFontSize"
         };
-        public Color NoReadColor = (Color)ColorConverter.ConvertFromString("#FFFFA77E");
+        public Color NoReadColor = (Color)ColorConverter.ConvertFromString("#E7FFBF");
         public Color ReadColor = Colors.White;
         public Color HighlightColor = Colors.Red;
         public int CrawlerOnceCount = 50;
@@ -142,5 +170,6 @@ namespace NEWSViewer
         public int ReadAutoDeleteDay = 1;
         public int WebPageCacheSec = 60;
         public bool PreviewRead = true;
+        public int TitleFontSize = 12;
     }
 }

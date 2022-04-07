@@ -98,8 +98,8 @@ CREATE TABLE T_ARTICLE (
             p.Add("@NoSearchText", data.NoSearchText);
             p.Add("@UpCategorySeq", data.UpCategorySeq);
             p.Add("@Number", data.Number);
-            p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm:ss"));
-            p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm:ss"));
+            p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm"));
+            p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm"));
             return ExecuteDataSetSingle<T_CATEGORY>(@"
 INSERT INTO T_CATEGORY (
 Category,
@@ -137,8 +137,8 @@ SELECT * FROM T_CATEGORY ORDER BY CategorySeq DESC LIMIT 1
             p.Add("@NoSearchText", data.NoSearchText);
             p.Add("@UpCategorySeq", data.UpCategorySeq);
             p.Add("@Number", data.Number);
-            p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm:ss"));
-            p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm:ss"));
+            p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm"));
+            p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm"));
             return ExecuteNonQuery(@"
 UPDATE T_CATEGORY 
 SET 
@@ -160,7 +160,8 @@ WHERE CategorySeq=@CategorySeq
             SqlParamCollection p = new SqlParamCollection();
             p.Add("@CategorySeq", data.CategorySeq);
             return ExecuteNonQuery(@"
-DELETE FROM T_CATEGORY WHERE CategorySeq=@CategorySeq
+DELETE FROM T_CATEGORY WHERE CategorySeq=@CategorySeq;
+DELETE FROM T_ARTICLE WHERE CategorySeq=@CategorySeq;
 ", p);
         }
 
@@ -168,7 +169,7 @@ DELETE FROM T_CATEGORY WHERE CategorySeq=@CategorySeq
         {
             SqlParamCollection p = new SqlParamCollection();
             var result = ExecuteDataSet<T_CATEGORY>(@"
-SELECT * FROM T_CATEGORY ORDER BY Number Desc
+SELECT * FROM T_CATEGORY ORDER BY CategorySeq, SearchText, Number Desc
 ", p);
             return result;
         }
@@ -183,7 +184,64 @@ SELECT * FROM T_CATEGORY ORDER BY Number Desc
                 p.Add("@CategorySeq", data.CategorySeq);
                 p.Add("@Press", data.Press);
                 p.Add("@PressLink", data.PressLink);
-                p.Add("@InfoTime", data.InfoTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                p.Add("@InfoTime", data.InfoTime.ToString("yyyy-MM-dd HH:mm"));
+                p.Add("@Title", data.Title);
+                p.Add("@Link", data.Link);
+                p.Add("@Description", data.Description);
+                p.Add("@ImageUrl", data.ImageUrl);
+                p.Add("@IsRead", data.IsRead);
+                p.Add("@IsDelete", data.IsDelete);
+                p.Add("@RegDate", data.RegDate);
+                p.Add("@ReadDate", data.ReadDate);
+                p.Add("@ModDate", data.ModDate);
+                lp.Add(p);
+            }
+            return ExecuteNonQuery(@"
+INSERT OR IGNORE INTO T_ARTICLE (
+Type,
+CategorySeq,
+Press,
+PressLink,
+InfoTime,
+Title,
+Link,
+Description,
+ImageUrl,
+IsRead,
+IsDelete,
+RegDate,
+ReadDate,
+ModDate
+) VALUES (
+@Type,
+@CategorySeq,
+@Press,
+@PressLink,
+@InfoTime,
+@Title,
+@Link,
+@Description,
+@ImageUrl,
+@IsRead,
+@IsDelete,
+@RegDate,
+@ReadDate,
+@ModDate
+)
+", lp);
+        }
+
+        public int UpdateT_ARTICLE(IEnumerable<T_ARTICLE> datas)
+        {
+            var lp = new List<SqlParamCollection>();
+            foreach (var data in datas)
+            {
+                var p = new SqlParamCollection();
+                p.Add("@Type", data.Type);
+                p.Add("@CategorySeq", data.CategorySeq);
+                p.Add("@Press", data.Press);
+                p.Add("@PressLink", data.PressLink);
+                p.Add("@InfoTime", data.InfoTime.ToString("yyyy-MM-dd HH:mm"));
                 p.Add("@Title", data.Title);
                 p.Add("@Link", data.Link);
                 p.Add("@Description", data.Description);
@@ -227,8 +285,63 @@ ModDate
 @ReadDate,
 @ModDate
 )
+", lp);
+        }
 
-
+        public int UpdateT_ARTICLE(IEnumerable<T_ARTICLE> datas, bool isread, bool isdelete)
+        {
+            var lp = new List<SqlParamCollection>();
+            foreach (var data in datas)
+            {
+                var p = new SqlParamCollection();
+                p.Add("@Type", data.Type);
+                p.Add("@CategorySeq", data.CategorySeq);
+                p.Add("@Press", data.Press);
+                p.Add("@PressLink", data.PressLink);
+                p.Add("@InfoTime", data.InfoTime.ToString("yyyy-MM-dd HH:mm"));
+                p.Add("@Title", data.Title);
+                p.Add("@Link", data.Link);
+                p.Add("@Description", data.Description);
+                p.Add("@ImageUrl", data.ImageUrl);
+                p.Add("@IsRead", data.IsRead);
+                p.Add("@IsDelete", data.IsDelete);
+                p.Add("@RegDate", data.RegDate);
+                p.Add("@ReadDate", data.ReadDate);
+                p.Add("@ModDate", data.ModDate);
+                lp.Add(p);
+            }
+            return ExecuteNonQuery(@"
+REPLACE INTO T_ARTICLE (
+Type,
+CategorySeq,
+Press,
+PressLink,
+InfoTime,
+Title,
+Link,
+Description,
+ImageUrl,
+IsRead,
+IsDelete,
+RegDate,
+ReadDate,
+ModDate
+) VALUES (
+@Type,
+@CategorySeq,
+@Press,
+@PressLink,
+@InfoTime,
+@Title,
+@Link,
+@Description,
+@ImageUrl,
+@IsRead,
+@IsDelete,
+@RegDate,
+@ReadDate,
+@ModDate
+)
 ", lp);
         }
 
@@ -244,7 +357,7 @@ DELETE FROM T_ARTICLE WHERE Link=@Link
         public int DeleteT_ARTICLE(DateTime enddate)
         {
             SqlParamCollection p = new SqlParamCollection();
-            p.Add("@enddate", enddate.ToString("yyyy-MM-dd HH:mm:ss"));
+            p.Add("@enddate", enddate.ToString("yyyy-MM-dd HH:mm"));
             return ExecuteNonQuery(@"
 UPDATE T_ARTICLE 
 SET 
@@ -262,6 +375,19 @@ WHERE InfoTime<@enddate AND IsRead=1
 SELECT COUNT(*) Value FROM T_ARTICLE WHERE CategorySeq=@CategorySeq AND IsRead = 0 AND IsDelete = 0
 ";
             var result = ExecuteDataSetSingle<int>(q, p);
+            return result;
+        }
+
+        public IEnumerable<T_ARTICLECount> SelectCountT_ARTICLE(IEnumerable<int> CategorySeqs)
+        {
+            SqlParamCollection p = new SqlParamCollection();
+
+            string q = string.Format(@"
+SELECT CategorySeq, COUNT(*) Count FROM T_ARTICLE 
+WHERE CategorySeq IN ({0}) AND IsRead = 0 AND IsDelete = 0
+GROUP BY CategorySeq
+", string.Join(",", CategorySeqs));
+            var result = ExecuteDataSet<T_ARTICLECount>(q, p);
             return result;
         }
 
@@ -321,8 +447,8 @@ SELECT * FROM T_ARTICLE {0} ORDER BY InfoTime Desc
 //                p.Add("@Link", data.Link);
 //                p.Add("@IsRead", data.IsRead);
 //                p.Add("@IsDelete", data.IsDelete);
-//                p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm:ss"));
-//                p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm:ss"));
+//                p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm"));
+//                p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm"));
 //                lp.Add(p);
 //            }
 //            return ExecuteNonQuery(@"

@@ -17,7 +17,11 @@
                 <Setter Property="FontSize" Value="18"/>
                 <Setter Property="FontWeight" Value="Bold"/>
             </Style>
+            <Style x:Key="TextBlock_Title" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12"/>
+            </Style>
             <SolidColorBrush x:Key="ArticleColor" Color="#FFFFA86C"/>
+            <System:Double x:Key="FontSizeTitle">10</System:Double>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

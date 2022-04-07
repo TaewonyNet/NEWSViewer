@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEWSViewer", "NEWSViewer\NE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaewonyNet.Common", "..\dari\Source\TaewonyNet.Common\TaewonyNet.Common.csproj", "{DFDBEEEF-D21F-4BD1-B338-E9B2DC2DB6A5}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "NEWSViewerInstaller", "NEWSViewerInstaller\NEWSViewerInstaller.vdproj", "{5AFD7271-6DB7-4F0A-9BEE-391F489554ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,8 @@ Global
 		{DFDBEEEF-D21F-4BD1-B338-E9B2DC2DB6A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFDBEEEF-D21F-4BD1-B338-E9B2DC2DB6A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFDBEEEF-D21F-4BD1-B338-E9B2DC2DB6A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AFD7271-6DB7-4F0A-9BEE-391F489554ED}.Debug|Any CPU.ActiveCfg = Debug
+		{5AFD7271-6DB7-4F0A-9BEE-391F489554ED}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

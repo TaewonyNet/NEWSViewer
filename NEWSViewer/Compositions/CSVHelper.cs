@@ -74,7 +74,7 @@ namespace NEWSViewer.Compositions
                         {
                             for (int i = 0; i < aobjData.Length; i++)
                             {
-                                sb.Append(GetString(aobjData[i]) + ",");
+                                sb.Append(GetString(aobjData[i]) + (i + 1 == aobjData.Length ? "" : ","));
                             }
                             if (rows.Count > 0)
                             {

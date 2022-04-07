@@ -65,4 +65,18 @@ namespace NEWSViewer
         /// </summary>
         public DateTime ModDate { get; set; }
     }
+
+    public class T_ARTICLECount
+    {
+        /// <summary>
+        /// 카테고리 키
+        /// </summary>
+        public int CategorySeq { get; set; }
+        /// <summary>
+        /// 개수
+        /// </summary>
+        public int Count { get; set; }
+
+    }
+
 }

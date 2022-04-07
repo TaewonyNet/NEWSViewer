@@ -43,9 +43,9 @@ namespace NEWSViewer
             NotifyPropertyChanged("Count");
         }
 
-        private bool? isExpanded;
+        private bool isExpanded;
 
-        public bool? IsExpanded
+        public bool IsExpanded
         {
             get { return isExpanded; }
             set
@@ -54,9 +54,9 @@ namespace NEWSViewer
                 NotifyPropertyChanged();
             }
         }
-        private bool? isSelected;
+        private bool isSelected;
 
-        public bool? IsSelected
+        public bool IsSelected
         {
             get { return isSelected; }
             set

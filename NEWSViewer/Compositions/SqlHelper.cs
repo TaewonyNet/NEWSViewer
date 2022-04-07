@@ -78,10 +78,14 @@ namespace NEWSViewer
                     {
                         SQLiteParameter parameter = (SQLiteParameter)i.Current;
                         _Com.Parameters.Add(parameter);
+#if DEBUG
                         sb.Append(string.Format("{0}:{1} ", parameter.ParameterName, parameter.Value));
+#endif
                     }
                 }
+#if DEBUG
                 Log.Info("ExecuteDataSet {0} {1}", q.Replace("\n", ""), sb.ToString());
+#endif
 
                 _Con.Open();
                 _Adp.Fill(_Ds);
@@ -118,10 +122,14 @@ namespace NEWSViewer
                     {
                         SQLiteParameter parameter = (SQLiteParameter)i.Current;
                         _Com.Parameters.Add(parameter);
+#if DEBUG
                         sb.Append(string.Format("{0}:{1} ", parameter.ParameterName, parameter.Value));
+#endif
                     }
                 }
+#if DEBUG
                 Log.Info("ExecuteNonQuery {0} {1}", q.Replace("\n", ""), sb.ToString());
+#endif
 
                 _Con.Open();
                 r = _Com.ExecuteNonQuery();
@@ -207,10 +215,14 @@ namespace NEWSViewer
                     {
                         SQLiteParameter parameter = (SQLiteParameter)i.Current;
                         _Com.Parameters.Add(parameter);
+#if DEBUG
                         sb.Append(string.Format("{0}:{1} ", parameter.ParameterName, parameter.Value));
+#endif
                     }
                 }
+#if DEBUG
                 Log.Info("ExecuteScalar {0} {1}", q.Replace("\n", ""), sb.ToString());
+#endif
 
                 _Con.Open();
                 r = _Com.ExecuteScalar();

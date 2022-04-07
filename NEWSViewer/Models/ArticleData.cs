@@ -11,11 +11,29 @@ using TaewonyNet.Common.Compositions;
 
 namespace NEWSViewer
 {
+    public class TextTag : FrameworkElement
+    {
+        public FormattedText FormattedText { get; set; }
+
+        public TextTag(FormattedText text)
+        {
+            FormattedText = text;
+        }
+
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            drawingContext.DrawText(FormattedText, new Point(0, 0));
+            base.OnRender(drawingContext);
+        }
+    }
+
     public class ArticleData : NotifyPropertyBase
     {
         public T_ARTICLE Data { get; set; }
 
         public TextBlock Title { get; set; }
+
+        //public TextTag Title2 { get; set; }
 
         private string _searchText;
 
@@ -25,7 +43,8 @@ namespace NEWSViewer
             set
             {
                 _searchText = value;
-                Title = GetHighlightText(Data.Title);
+                Title = GetHighlightText(Data.Title, Global.Instance.TitleFontSize);
+                //Title2 = new TextTag(GetHighlightText2(Data.Title));
             }
         }
 
@@ -36,9 +55,49 @@ namespace NEWSViewer
             NotifyPropertyChanged("SearchText");
         }
 
-        public TextBlock GetHighlightText(string content)
+        public FormattedText GetHighlightText2(string content)
+        {
+            FormattedText formattedText = new FormattedText(
+                content,
+                System.Globalization.CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                Fonts.SystemTypefaces.First(),
+                12,
+                new SolidColorBrush(Colors.Black)
+                );
+            if (Data != null)
+            {
+                int pos = 0;
+                if (string.IsNullOrWhiteSpace(_searchText) == false)
+                {
+                    var text = GetSearchText(content, _searchText);
+                    foreach (var t in text)
+                    {
+                        if (t.Item2 == true)
+                        {
+                            formattedText.SetForegroundBrush(
+                                new SolidColorBrush(Global.Instance.HighlightColor),
+                                pos,
+                                t.Item1.Length);
+                            formattedText.SetFontWeight(
+                                FontWeights.Bold,
+                                pos,
+                                t.Item1.Length);
+                        }
+                        else
+                        {
+                        }
+                        pos += t.Item1.Length;
+                    }
+                }
+            }
+            return formattedText;
+        }
+
+        public TextBlock GetHighlightText(string content, double fontsize = 12)
         {
             TextBlock textBlock = new TextBlock();
+            textBlock.FontSize = fontsize;
             if (Data != null) 
             {
                 if (string.IsNullOrWhiteSpace(_searchText) == false)

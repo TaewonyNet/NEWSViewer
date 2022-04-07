@@ -45,6 +45,7 @@ namespace NEWSViewer
             Button_No.Click += Button_No_Click;
 
             Label_message.Content = message;
+            Button_Yes.Focus();
         }
 
         private void Button_OK_Click(object sender, RoutedEventArgs e)
