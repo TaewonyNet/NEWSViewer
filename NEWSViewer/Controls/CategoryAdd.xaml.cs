@@ -61,7 +61,7 @@ namespace NEWSViewer.Controls
             }
             else
             {
-                TextBlock_SearchText.Focus();
+                TextBox_SearchText.Focus();
                 TextBlock_Category.Visibility = Visibility.Collapsed;
                 TextBox_Category.Visibility = Visibility.Collapsed;
             }

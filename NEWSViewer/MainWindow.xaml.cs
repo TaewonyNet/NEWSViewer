@@ -169,11 +169,11 @@ namespace NEWSViewer
                     {
                         ProgressBar_Search.Value = ProgressBar_Search.Maximum - SearchQueue.Count;
                         TextBlock_Search.Text = LastSearchText;
-
-                        if (ProgressBar_Search.Value == ProgressBar_Search.Maximum)
+                        TimeSpan time = LastRefreshTime.Subtract(DateTime.Now);
+                        if ((ProgressBar_Search.Value == ProgressBar_Search.Maximum)
+                            && (time.TotalSeconds > 0))
                         {
-                            TextBlock_Search.Text = "재검색 " +
-                            LastRefreshTime.Subtract(DateTime.Now).ToString().Remove(8);
+                            TextBlock_Search.Text = "재검색 " + time.ToString().Remove(8);
                         }
                     }
                 });
@@ -843,7 +843,7 @@ namespace NEWSViewer
                     var before = CategoryDatas.FirstOrDefault(f => f.Data.CategorySeq == uc.Data.Data.UpCategorySeq);
                     if (before != null)
                     {
-                        before = before.Children.FirstOrDefault(f => f.Data.SearchText == uc.Data.Data.SearchText);
+                        before = before.Children.FirstOrDefault(f => f.Data != uc.Data.Data && f.Data.SearchText == uc.Data.Data.SearchText);
                         if (before != null)
                         {
                             Global.Instance.Alert("이미 등록된 검색어입니다.");

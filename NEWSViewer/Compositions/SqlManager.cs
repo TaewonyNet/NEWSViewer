@@ -417,17 +417,17 @@ SELECT * FROM T_ARTICLE WHERE CategorySeq IN ({0}) AND IsDelete = 0 ORDER BY Inf
             SqlParamCollection p = new SqlParamCollection();
             p.Add("@searchText", "%" + searchText + "%");
             string q = @"
-SELECT * FROM T_ARTICLE {0} ORDER BY InfoTime Desc
+SELECT * FROM T_ARTICLE WHERE IsDelete = 0 {0} ORDER BY InfoTime Desc
 ";
             if (string.IsNullOrWhiteSpace(searchText) == false) 
             {
                 if (isTitle == true)
                 {
-                    q = string.Format(q, "WHERE Title LIKE @searchText");
+                    q = string.Format(q, "AND Title LIKE @searchText");
                 }
                 else
                 {
-                    q = string.Format(q, "WHERE Title LIKE @searchText OR Description LIKE @searchText");
+                    q = string.Format(q, "AND Title LIKE @searchText OR Description LIKE @searchText");
                 }
             }
             else
