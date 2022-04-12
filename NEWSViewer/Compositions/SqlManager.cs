@@ -98,8 +98,8 @@ CREATE TABLE T_ARTICLE (
             p.Add("@NoSearchText", data.NoSearchText);
             p.Add("@UpCategorySeq", data.UpCategorySeq);
             p.Add("@Number", data.Number);
-            p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm"));
-            p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm"));
+            p.Add("@RegDate", data.RegDate);
+            p.Add("@ModDate", data.ModDate);
             return ExecuteDataSetSingle<T_CATEGORY>(@"
 INSERT INTO T_CATEGORY (
 Category,
@@ -137,8 +137,8 @@ SELECT * FROM T_CATEGORY ORDER BY CategorySeq DESC LIMIT 1
             p.Add("@NoSearchText", data.NoSearchText);
             p.Add("@UpCategorySeq", data.UpCategorySeq);
             p.Add("@Number", data.Number);
-            p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm"));
-            p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm"));
+            p.Add("@RegDate", data.RegDate);
+            p.Add("@ModDate", data.ModDate);
             return ExecuteNonQuery(@"
 UPDATE T_CATEGORY 
 SET 
@@ -165,11 +165,11 @@ DELETE FROM T_ARTICLE WHERE CategorySeq=@CategorySeq;
 ", p);
         }
 
-            public List<T_CATEGORY> SelectT_CATEGORY()
+        public List<T_CATEGORY> SelectT_CATEGORY()
         {
             SqlParamCollection p = new SqlParamCollection();
             var result = ExecuteDataSet<T_CATEGORY>(@"
-SELECT * FROM T_CATEGORY ORDER BY CategorySeq, SearchText, Number Desc
+SELECT * FROM T_CATEGORY ORDER BY (CASE WHEN UpCategorySeq is NULL THEN CategorySeq ELSE '' END), SearchText
 ", p);
             return result;
         }
@@ -184,7 +184,7 @@ SELECT * FROM T_CATEGORY ORDER BY CategorySeq, SearchText, Number Desc
                 p.Add("@CategorySeq", data.CategorySeq);
                 p.Add("@Press", data.Press);
                 p.Add("@PressLink", data.PressLink);
-                p.Add("@InfoTime", data.InfoTime.ToString("yyyy-MM-dd HH:mm"));
+                p.Add("@InfoTime", data.InfoTime);
                 p.Add("@Title", data.Title);
                 p.Add("@Link", data.Link);
                 p.Add("@Description", data.Description);
@@ -241,7 +241,7 @@ ModDate
                 p.Add("@CategorySeq", data.CategorySeq);
                 p.Add("@Press", data.Press);
                 p.Add("@PressLink", data.PressLink);
-                p.Add("@InfoTime", data.InfoTime.ToString("yyyy-MM-dd HH:mm"));
+                p.Add("@InfoTime", data.InfoTime);
                 p.Add("@Title", data.Title);
                 p.Add("@Link", data.Link);
                 p.Add("@Description", data.Description);
@@ -298,7 +298,7 @@ ModDate
                 p.Add("@CategorySeq", data.CategorySeq);
                 p.Add("@Press", data.Press);
                 p.Add("@PressLink", data.PressLink);
-                p.Add("@InfoTime", data.InfoTime.ToString("yyyy-MM-dd HH:mm"));
+                p.Add("@InfoTime", data.InfoTime);
                 p.Add("@Title", data.Title);
                 p.Add("@Link", data.Link);
                 p.Add("@Description", data.Description);
@@ -357,13 +357,26 @@ DELETE FROM T_ARTICLE WHERE Link=@Link
         public int DeleteT_ARTICLE(DateTime enddate)
         {
             SqlParamCollection p = new SqlParamCollection();
-            p.Add("@enddate", enddate.ToString("yyyy-MM-dd HH:mm"));
+            p.Add("@enddate", enddate);
             return ExecuteNonQuery(@"
 UPDATE T_ARTICLE 
 SET 
 IsDelete = 1,
 ModDate = datetime('now')
 WHERE InfoTime<@enddate AND IsRead=1
+", p);
+        }
+
+        public int DeleteT_ARTICLE(bool isread)
+        {
+            SqlParamCollection p = new SqlParamCollection();
+            p.Add("@isread", isread);
+            return ExecuteNonQuery(@"
+UPDATE T_ARTICLE 
+SET 
+IsDelete = 1,
+ModDate = datetime('now')
+WHERE IsRead=@isread AND IsDelete != 1
 ", p);
         }
 
@@ -447,8 +460,8 @@ SELECT * FROM T_ARTICLE WHERE IsDelete = 0 {0} ORDER BY InfoTime Desc
 //                p.Add("@Link", data.Link);
 //                p.Add("@IsRead", data.IsRead);
 //                p.Add("@IsDelete", data.IsDelete);
-//                p.Add("@RegDate", data.RegDate.ToString("yyyy-MM-dd HH:mm"));
-//                p.Add("@ModDate", data.ModDate.ToString("yyyy-MM-dd HH:mm"));
+//                p.Add("@RegDate", data.RegDate);
+//                p.Add("@ModDate", data.ModDate);
 //                lp.Add(p);
 //            }
 //            return ExecuteNonQuery(@"

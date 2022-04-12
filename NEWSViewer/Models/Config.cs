@@ -48,5 +48,17 @@ namespace NEWSViewer
         [XmlElement("RowDefinition_Height")]
         public double RowDefinition_Height { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        [XmlElement("Top")]
+        public double Top { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [XmlElement("Left")]
+        public double Left { get; set; }
+
     }
 }

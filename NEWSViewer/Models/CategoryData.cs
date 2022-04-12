@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -9,18 +11,18 @@ using TaewonyNet.Common.Compositions;
 
 namespace NEWSViewer
 {
-    public class CategoryData : NotifyPropertyBase
+    public class CategoryData : NotifyPropertyBase//TreeViewItem 
     {
         public T_CATEGORY Data { get; set; }
 
-        public ObservableCollection<CategoryData> Children { get; set; }
+        public new ObservableCollection<CategoryData> Items { get; set; }
 
         public int? Count { get; set; }
 
         public CategoryData()
         {
             //Loaded += CategoryData_Loaded;
-            Children = new ObservableCollection<CategoryData>();
+            Items = new ObservableCollection<CategoryData>();
         }
 
         private void CategoryData_Loaded(object sender, System.Windows.RoutedEventArgs e)
@@ -38,6 +40,7 @@ namespace NEWSViewer
 
         public void Refresh()
         {
+            //this.UpdateLayout();
             NotifyPropertyChanged("Data");
             NotifyPropertyChanged("Children");
             NotifyPropertyChanged("Count");

@@ -24,10 +24,11 @@
         <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Horizontal">
             <Button x:Name="Button_ExportCategory" Content="검색어내보내기" Margin="5 5 5 5"/>
             <Button x:Name="Button_ImportCategory" Content="검색어가져오기" Margin="0 5 5 5"/>
+            <Button x:Name="Button_EditCategory" Content="검색어직접편집" Margin="0 5 5 5"/>
         </StackPanel>
         <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
-            <Button x:Name="Button_ReadAll" Content="전체읽기" Margin="0 5 5 5"/>
-            <Button x:Name="Button_ReadDelete" Content="읽은뉴스삭제" Margin="0 5 5 5"/>
+            <Button x:Name="Button_ReadAll" Content=" 전체읽기 " Margin="0 5 5 5" Background="{DynamicResource NoReadColor}"/>
+            <Button x:Name="Button_ReadDelete" Content="읽은뉴스삭제" Margin="0 5 5 5" Visibility="Collapsed"/>
             <Button x:Name="Button_BeforeDelete" Content="이전뉴스삭제" Margin="0 5 5 5"/>
             <Button x:Name="Button_Search" Content="검색시작" Margin="0 5 5 5"/>
             <Grid Width="100" Margin="0 5 5 5" >
@@ -51,15 +52,22 @@
             </Grid.RowDefinitions>
             <GridSplitter x:Name="GridSplitter_Horizontal" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Bottom" Height="5" HorizontalAlignment="Stretch" />
             <GridSplitter x:Name="GridSplitter_Vertical" Grid.RowSpan="2" Width="5" HorizontalAlignment="Right"/>
-            <TreeView x:Name="TreeView_Category" Grid.RowSpan="2" Margin="5 5 10 40">
+            <TreeView x:Name="TreeView_Category" Grid.RowSpan="2" Margin="5 40 10 5">
                 <TreeView.ItemContainerStyle>
                     <Style TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
                         <Setter Property="IsSelected" Value="{Binding IsSelected}"/>
+                        <Setter Property="Padding" Value="3 2"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource NoReadColor}"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </Style.Triggers>
                     </Style>
                 </TreeView.ItemContainerStyle>
                 <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <HierarchicalDataTemplate ItemsSource="{Binding Items}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Data.Category}"/>
                             <TextBlock Text="{Binding Data.SearchText}"/>
@@ -72,8 +80,10 @@
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
                 <!--<TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <DataTemplate>
                         <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="123"/>
+                            <TextBlock Text="{Binding .}"/>
                             <TextBlock Text="{Binding Data.Category}"/>
                             <TextBlock Text="{Binding Data.SearchText}"/>
                             <StackPanel Orientation="Horizontal" Visibility="{Binding Count, Converter={StaticResource NotNullToVisibility}}">
@@ -82,22 +92,25 @@
                                 <TextBlock Text=")"/>
                             </StackPanel>
                         </StackPanel>
-                    </HierarchicalDataTemplate>
-                </TreeView.ItemTemplate>-->
+                    </DataTemplate>
+                </TreeView.ItemTemplate>
+                <TreeViewItem>
+                    dddd
+                </TreeViewItem>-->
                 <local:CategoryData>
                     <local:CategoryData.Data>
                         <local:T_CATEGORY Category="전체"/>
                     </local:CategoryData.Data>
-                    <local:CategoryData.Children>
+                    <local:CategoryData.Items>
                         <local:CategoryData>
                             <local:CategoryData.Data>
                                 <local:T_CATEGORY Category="하위"/>
                             </local:CategoryData.Data>
                         </local:CategoryData>
-                    </local:CategoryData.Children>
+                    </local:CategoryData.Items>
                 </local:CategoryData>
             </TreeView>
-            <StackPanel Grid.RowSpan="2" HorizontalAlignment="Right"  VerticalAlignment="Bottom" Orientation="Horizontal" Margin="0 0 5 0">
+            <StackPanel Grid.RowSpan="2" HorizontalAlignment="Right"  VerticalAlignment="Top" Orientation="Horizontal" Margin="0 0 5 0">
                 <Button x:Name="Button_CategoryAddFolder" HorizontalAlignment="Center" VerticalAlignment="Center" Content="폴더추가" Margin="5 5 5 5"/>
                 <Button x:Name="Button_CategoryAdd" HorizontalAlignment="Center" VerticalAlignment="Center" Content="추가" Margin="0 5 5 5" IsEnabled="False"/>
                 <Button x:Name="Button_CategoryModify" HorizontalAlignment="Center" VerticalAlignment="Center" Content="수정" Margin="0 5 5 5" IsEnabled="False"/>
@@ -128,6 +141,7 @@
                 <ListView.ItemContainerStyle>
                     <Style TargetType="{x:Type ListViewItem}">
                         <Setter Property="Background" Value="{Binding Data.IsRead, Converter={StaticResource ArticleHighlightColorConveter}}" />
+                        <Setter x:Name="ListView_ItemMargin" Property="Margin" Value="{DynamicResource ListItemMargin}"/>
                     </Style>
                 </ListView.ItemContainerStyle>
                 <ListView.View>
@@ -142,20 +156,20 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="수집시간">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <TextBlock Text="{Binding Data.RegDate, Converter={StaticResource DateTimeStringConveter}}"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
                         <GridViewColumn Header="기사입력시간">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
                                         <TextBlock Text="{Binding Data.InfoTime, Converter={StaticResource DateTimeStringConveter}}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="수집시간">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <TextBlock Text="{Binding Data.RegDate, Converter={StaticResource DateTimeStringConveter}}"/>
                                     </Grid>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
@@ -208,7 +222,7 @@
                 </StackPanel>
                 <ContentPresenter x:Name="RichTextBox_ArticleHeader" Grid.Row="1" Margin="5"/>
                 <ContentPresenter x:Name="RichTextBox_Article" Grid.Row="2" Margin="5"/>
-                <Image x:Name="Image_Article" Grid.Column="1" Grid.RowSpan="3"  VerticalAlignment="Stretch" HorizontalAlignment="Right" Margin="5"/>
+                <!--<Image x:Name="Image_Article" Grid.Column="1" Grid.RowSpan="3"  VerticalAlignment="Stretch" HorizontalAlignment="Right" Margin="5"/>-->
             </Grid>
         </Grid>
         <Grid x:Name="Grid_Popup" Grid.RowSpan="3">

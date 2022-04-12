@@ -20,6 +20,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TaewonyNet.Common.Compositions;
+using WpfScreenHelper;
 
 namespace NEWSViewer
 {
@@ -69,6 +70,7 @@ namespace NEWSViewer
 
             Button_ExportCategory.Click += Button_ExportCategory_Click;
             Button_ImportCategory.Click += Button_ImportCategory_Click;
+            Button_EditCategory.Click += Button_EditCategory_Click;
             Button_ReadAll.Click += Button_ReadAll_Click;
             Button_ReadDelete.Click += Button_ReadDelete_Click;
             Button_BeforeDelete.Click += Button_BeforeDelete_Click;
@@ -140,7 +142,10 @@ namespace NEWSViewer
                 this.WindowState = Converters.ConvertType<WindowState>(config.WindowState);
                 this.ColumnDefinition_With.Width = new GridLength(config.ColumnDefinition_With);
                 this.RowDefinition_Height.Height = new GridLength(config.RowDefinition_Height);
+                this.Top = config.Top;
+                this.Left = config.Left;
             }
+
             Config = config;
         }
 
@@ -192,14 +197,41 @@ namespace NEWSViewer
                 Global.Instance.Alert("기사를 선택 해 주세요.");
                 return;
             }
-            int idx = ArticleDatas.IndexOf(selart);
+
+            var confirm = Global.Instance.Confirm("해당 항목을 정말 삭제하겠습니까?");
+            confirm.OKClicked = (s) =>
+            {
+                int idx = ArticleDatas.IndexOf(selart);
+                List<T_ARTICLE> uparts = new List<T_ARTICLE>();
+                for (int i = ArticleDatas.Count - 1; i >= idx; i--)
+                {
+                    var art = ArticleDatas[i];
+                    art.Data.IsDelete = true;
+                    ArticleDatas.Remove(art);
+                    uparts.Add(art.Data);
+                }
+                SqlManager.Instance.UpdateT_ARTICLE(uparts);
+                var cate = TreeView_Category.SelectedItem as CategoryData;
+                if (cate != null)
+                {
+                    cate.Count = ArticleDatas.Count(f => f.Data.IsRead == false);
+                    cate.Refresh();
+                }
+            };
+        }
+
+        private void Button_ReadDelete_Click(object sender, RoutedEventArgs e)
+        {
             List<T_ARTICLE> uparts = new List<T_ARTICLE>();
-            for (int i = ArticleDatas.Count - 1; i >= idx; i--)
+            for (int i = ArticleDatas.Count - 1; i >= 0; i--)
             {
                 var art = ArticleDatas[i];
-                art.Data.IsDelete = true;
-                ArticleDatas.Remove(art);
-                uparts.Add(art.Data);
+                if (art.Data.IsRead == true)
+                {
+                    art.Data.IsDelete = true;
+                    ArticleDatas.Remove(art);
+                    uparts.Add(art.Data);
+                }
             }
             SqlManager.Instance.UpdateT_ARTICLE(uparts);
             var cate = TreeView_Category.SelectedItem as CategoryData;
@@ -208,11 +240,6 @@ namespace NEWSViewer
                 cate.Count = ArticleDatas.Count(f => f.Data.IsRead == false);
                 cate.Refresh();
             }
-        }
-
-        private void Button_ReadDelete_Click(object sender, RoutedEventArgs e)
-        {
-            ReadArticle(ArticleDatas, false, Global.Instance.ReadAutoDeleteDay);
         }
 
         private void Button_ArticleLink_Click(object sender, RoutedEventArgs e)
@@ -253,6 +280,8 @@ namespace NEWSViewer
             config.WindowState = (int)this.WindowState;
             config.ColumnDefinition_With = this.ColumnDefinition_With.Width.Value;
             config.RowDefinition_Height = this.RowDefinition_Height.Height.Value;
+            config.Top = this.Top;
+            config.Left = this.Left;
             Configuration.Self.SerializeToXML(config);
         }
 
@@ -272,7 +301,7 @@ namespace NEWSViewer
             {
                 var art = ListView_Acticle.SelectedItem as ArticleData;
                 Process.Start(art.Data.Link);
-                ReadArticle(new[] { art }, true, Global.Instance.ReadAutoDeleteDay);
+                ReadArticle(new[] { art }, true);
             }
         }
 
@@ -388,17 +417,17 @@ namespace NEWSViewer
                 TextBlock desc = art.GetHighlightText(art.Data.Description);
                 desc.TextWrapping = TextWrapping.WrapWithOverflow;
                 RichTextBox_Article.Content = desc;
-                if (string.IsNullOrEmpty(art.Data.ImageUrl) == false)
-                {
-                    Image_Article.Source = new BitmapImage(new Uri(art.Data.ImageUrl));
-                }
-                else
-                {
-                    Image_Article.Source = null;
-                }
+                //if (string.IsNullOrEmpty(art.Data.ImageUrl) == false)
+                //{
+                //    Image_Article.Source = new BitmapImage(new Uri(art.Data.ImageUrl));
+                //}
+                //else
+                //{
+                //    Image_Article.Source = null;
+                //}
                 if (Global.Instance.PreviewRead == true)
                 {
-                    ReadArticle(new[] { art }, true, Global.Instance.ReadAutoDeleteDay);
+                    ReadArticle(new[] { art }, true);
                 }
                 Grid_ArticleContent.UpdateLayout();
             }
@@ -409,25 +438,11 @@ namespace NEWSViewer
             CSVHelper csv = new CSVHelper();
             if (csv.SaveFileDialog() == true)
             {
-                List<object[]> rows = new List<object[]>();
-                rows.Add(new object[] {
+                List<string[]> rows = new List<string[]>();
+                rows.Add(new string[] {
                     "폴더", "검색어", "제외어", "제목만(제목만:1, 전체검색:0)"//, "폴더키(백업용 없어도됨)", "키(백업용 없어도됨)"
-                });
-                foreach (var folder in CategoryDatas)
-                {
-                    foreach (var cate in folder.Children.OrderBy(f => f.Data.SearchText))
-                    {
-                        rows.Add(new object[]
-                        {
-                            folder.Data.Category,
-                            cate.Data.SearchText,
-                            cate.Data.NoSearchText,
-                            cate.Data.IsSearchTitle ? 1:0
-                            //folder.Data.CategorySeq,
-                            //cate.Data.CategorySeq
-                        });
-                    }
-                }
+                }); 
+                ExportCategory(rows);
                 csv.WriteFile(rows);
             }
         }
@@ -439,70 +454,170 @@ namespace NEWSViewer
             {
                 List<string[]> rows = new List<string[]>();
                 csv.ReadFile(rows);
-                //"폴더", "검색어", "제외어", "제목만(제목만:1, 전체검색:0)"
-                for (int i = 1; i < rows.Count; i++)
+                rows.RemoveAt(0);
+                ImportCategory(rows);
+            }
+        }
+        
+        private void Button_EditCategory_Click(object sender, RoutedEventArgs e)
+        {
+            List<string[]> rows = new List<string[]>();
+            CategoryEdit uc = new CategoryEdit(ExportCategory(rows));
+            PopupWindow window = new PopupWindow(uc);
+            uc.OnOKClicked = (s) =>
+            {
+                ImportCategory(uc.Data.ToList());
+            };
+        }
+
+        private List<string[]> ExportCategory(List<string[]> rows)
+        {
+            foreach (var folder in CategoryDatas)
+            {
+                foreach (var cate in folder.Items.OrderBy(f => f.Data.SearchText))
                 {
-                    var row = rows[i];
-                    if (row.Length > 2)
+                    rows.Add(new string[]
                     {
-                        var folder = CategoryDatas.FirstOrDefault(f => f.Data.Category == row[0].Trim());
-                        if (folder == null)
-                        {
-                            T_CATEGORY data = new T_CATEGORY()
-                            {
-                                Category = row[0],
-                                RegDate = DateTime.Now,
-                                ModDate = DateTime.Now,
-                            };
-                            data = SqlManager.Instance.InsertT_CATEGORY(data);
-                            folder = new CategoryData(data);
-                            CategoryDatas.Add(folder);
-                        }
-                        var cate = folder.Children.FirstOrDefault(f => f.Data.SearchText == row[1]);
-                        var nosearch = row.Length > 2 ? row[2] : string.Empty;
-                        var istitle = row.Length > 3 ? row[3].Trim() == "1" : false;
-                        if ((cate == null) ||
-                            (cate.Data.NoSearchText != nosearch) ||
-                            (cate.Data.IsSearchTitle != istitle))
-                        {
-                            T_CATEGORY data = new T_CATEGORY()
-                            {
-                                UpCategorySeq = folder.Data.CategorySeq,
-                                SearchText = row[1],
-                                NoSearchText = nosearch,
-                                IsSearchTitle = istitle,
-                                RegDate = DateTime.Now,
-                                ModDate = DateTime.Now,
-                            };
-                            data = SqlManager.Instance.InsertT_CATEGORY(data);
-                            if (cate == null)
-                            {
-                                cate = new CategoryData(data);
-                                folder.Children.Add(cate);
-                            }
-                            else
-                            {
-                                cate.Data = data;
-                            }
-                        }
-                        folder.Refresh();
-                        cate.Refresh();
+                        folder.Data.Category,
+                        cate.Data.SearchText,
+                        cate.Data.NoSearchText,
+                        cate.Data.IsSearchTitle ? "1":"0"
+                        //folder.Data.CategorySeq,
+                        //cate.Data.CategorySeq
+                    });
+                }
+            }
+
+            return rows;
+        }
+
+        private void ImportCategory(List<string[]> rows)
+        {
+            List<string> samelist = new List<string>();
+            DateTime dt = DateTime.Now;
+            List<T_CATEGORY> list = new List<T_CATEGORY>();
+            //"폴더", "검색어", "제외어", "제목만(제목만:1, 전체검색:0)"
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                if (row.Length > 0 && string.IsNullOrWhiteSpace(row[0]) == false)
+                {
+                    var data = new T_CATEGORY()
+                    {
+                        Category = row[0].Trim(),
+                        IsSearchTitle = row.Length > 3 ? row[3].Trim() == "1" : true,
+                        Type = null,
+                        SearchText = row.Length > 1 ? row[1].Trim() : string.Empty,
+                        NoSearchText = row.Length > 2 ? row[2].Trim() : string.Empty,
+                        UpCategorySeq = null,
+                        Number = 0,
+                        RegDate = dt,
+                        ModDate = dt,
+                    };
+                    var same = list.FirstOrDefault(f => f.SearchText == data.SearchText);
+                    if (same != null)
+                    {
+                        samelist.Add(string.Format("{0}>{1}", data.Category, data.SearchText));
+                    }
+                    else
+                    {
+                        list.Add(data);
                     }
                 }
-                //TreeView_Category.Items.Refresh();
             }
+            var upcates = list.Select(f => f.Category).Distinct().ToList();
+            var delcates = CategoryDatas.Where(f =>
+                (upcates.IndexOf(f.Data.Category) == -1) && f.Data.Category != CategoryAll).ToArray();
+            for (int i = delcates.Length - 1; i >= 0; i--)
+            {
+                foreach (var search in delcates[i].Items)
+                {
+                    SqlManager.Instance.DeleteT_CATEGORY(search.Data);
+                }
+                CategoryDatas.Remove(delcates[i]);
+                SqlManager.Instance.DeleteT_CATEGORY(delcates[i].Data);
+            }
+            for (int i = 0; i < upcates.Count; i++)
+            {
+                var cate = CategoryDatas.FirstOrDefault(f => f.Data.Category == upcates[i]);
+                if (cate == null)
+                {
+                    T_CATEGORY data = new T_CATEGORY()
+                    {
+                        Category = upcates[i],
+                        IsSearchTitle = false,
+                        Type = null,
+                        SearchText = null,
+                        NoSearchText = null,
+                        UpCategorySeq = null,
+                        Number = 0,
+                        RegDate = dt,
+                        ModDate = dt,
+                    };
+                    cate = new CategoryData(SqlManager.Instance.InsertT_CATEGORY(data));
+                    CategoryDatas.Add(cate);
+                }
+                var texts = list.Where(f => f.Category == cate.Data.Category).ToList();
+                var delsearchs = cate.Items.Where(f => texts.FirstOrDefault(f2 => f2.SearchText == f.Data.SearchText) == null).ToArray();
+                for (int j = delsearchs.Length - 1; j >= 0; j--)
+                {
+                    cate.Items.Remove(delsearchs[j]);
+                    SqlManager.Instance.DeleteT_CATEGORY(delsearchs[j].Data);
+                }
+                for (int j = 0; j < texts.Count; j++)
+                {
+                    var text = texts[j];
+                    var search = cate.Items.FirstOrDefault(f => f.Data.SearchText == text.SearchText);
+                    if (search == null)
+                    {
+                        T_CATEGORY data = new T_CATEGORY()
+                        {
+                            Category = null,
+                            IsSearchTitle = text.IsSearchTitle,
+                            Type = null,
+                            SearchText = text.SearchText,
+                            NoSearchText = text.NoSearchText,
+                            UpCategorySeq = cate.Data.CategorySeq,
+                            Number = 0,
+                            RegDate = dt,
+                            ModDate = dt,
+                        };
+                        search = new CategoryData(SqlManager.Instance.InsertT_CATEGORY(data))
+                        {
+                            Count = 0,
+                        };
+                        //cate.Items.Add(search);
+                        CategoryAddItem(cate, search);
+                    }
+                    else
+                    {
+                        search.Data.Category = null;
+                        search.Data.SearchText = text.SearchText;
+                        search.Data.NoSearchText = text.NoSearchText;
+                        search.Data.IsSearchTitle = text.IsSearchTitle;
+                        search.Data.ModDate = dt;
+                        search.Refresh();
+                        SqlManager.Instance.UpdateT_CATEGORY(search.Data);
+                    }
+                }
+            }
+            if (samelist.Count > 0)
+            {
+                Global.Instance.Alert(string.Format("중복항목 {0}개를 제거하였습니다.\n{1}", samelist.Count, string.Join(",", samelist.Take(10).ToArray())));
+            }
+            SelectedTreeViewItem(CategoryDatas.First());
         }
 
         private void Button_ReadAll_Click(object sender, RoutedEventArgs e)
         {
             if (ArticleDatas.Count > 0)
             {
-                ReadArticle(ArticleDatas, true, Global.Instance.ReadAutoDeleteDay);
+                ReadArticle(ArticleDatas, true);
                 //ListView_Acticle.Items.Refresh();
             }
         }
 
-        private void ReadArticle(IEnumerable<ArticleData> datas, bool? isread, int readautodelday)
+        private void ReadArticle(IEnumerable<ArticleData> datas, bool? isread)
         {
             if (datas == null || datas.Count() == 0)
             {
@@ -536,14 +651,14 @@ namespace NEWSViewer
             SqlManager.Instance.UpdateT_ARTICLE(uparts);
             if (Global.Instance.ReadAutoDeleteDay > 0)
             {
-                SqlManager.Instance.DeleteT_ARTICLE(DateTime.Now.AddDays(Global.Instance.ReadAutoDeleteDay));
+                SqlManager.Instance.DeleteT_ARTICLE(DateTime.Now.AddDays(-Global.Instance.ReadAutoDeleteDay));
             }
 
             var cate = TreeView_Category.SelectedItem as CategoryData;
             if (cate.Data.UpCategorySeq == null)
             {
-                var counts = SqlManager.Instance.SelectCountT_ARTICLE(cate.Children.Select(f => f.Data.CategorySeq));
-                foreach (var scate in cate.Children)
+                var counts = SqlManager.Instance.SelectCountT_ARTICLE(cate.Items.Select(f => f.Data.CategorySeq));
+                foreach (var scate in cate.Items)
                 {
                     var count = counts.FirstOrDefault(f => f.CategorySeq == scate.Data.CategorySeq);
                     scate.Count = count != null ? count.Count : 0;
@@ -576,7 +691,7 @@ namespace NEWSViewer
             SearchQueue.Clear();
             foreach (var folder in CategoryDatas)
             {
-                foreach (var cate in folder.Children)
+                foreach (var cate in folder.Items)
                 {
                     SearchQueue.Add(cate);
                 }
@@ -596,6 +711,14 @@ namespace NEWSViewer
             PopupWindow window = new PopupWindow(uc);
             uc.OnOKClicked = (s) =>
             {
+                Application.Current.Resources["NoReadColor"] = new SolidColorBrush(Global.Instance.NoReadColor);
+                Application.Current.Resources["TitleFontSize"] = Global.Instance.TitleFontSize;
+                Application.Current.Resources["ListItemMargin"] = new Thickness()
+                {
+                    Top = Global.Instance.ListItemMargin,
+                    Bottom = Global.Instance.ListItemMargin,
+                };
+
                 //var d = SqlManager.Instance.InsertT_CATEGORY(uc.Data.Data);
                 //uc.Data.Data = d;
                 //CategoryDatas.Add(uc.Data);
@@ -604,6 +727,20 @@ namespace NEWSViewer
 
         private void TreeView_Category_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            if (e.OldValue is CategoryData)
+            {
+                List<T_ARTICLE> uparts = new List<T_ARTICLE>();
+                for (int i = ArticleDatas.Count - 1; i >= 0; i--)
+                {
+                    var art = ArticleDatas[i];
+                    if (art.Data.IsRead == true)
+                    {
+                        art.Data.IsDelete = true;
+                        uparts.Add(art.Data);
+                    }
+                }
+                SqlManager.Instance.UpdateT_ARTICLE(uparts);
+            }
             Button_CategoryAdd.IsEnabled = false;
             Button_CategoryModify.IsEnabled = false;
             Button_CategoryDelete.IsEnabled = false;
@@ -615,9 +752,19 @@ namespace NEWSViewer
                 {
                     // 전체
                     var list = SqlManager.Instance.SelectT_ARTICLE();
+                    
+                    var cates = CategoryDatas.SelectMany(f => f.Items.Select(f2 => f2.Data)); 
                     foreach (var item in list)
                     {
-                        arts.Add(new ArticleData(item));
+                        var cate = cates.FirstOrDefault(f => f.CategorySeq == item.CategorySeq);
+                        if (cate != null)
+                        {
+                            arts.Add(new ArticleData(item, cate.SearchText));
+                        }
+                        else
+                        {
+                            SqlManager.Instance.DeleteT_ARTICLE(item);
+                        }
                     }
                 }
                 else
@@ -637,11 +784,12 @@ namespace NEWSViewer
                         // 폴더
                         Button_CategoryAdd.IsEnabled = true;
                         var list = SqlManager.Instance.SelectT_ARTICLE(
-                            data.Children.Select(f => f.Data.CategorySeq)
+                            data.Items.Select(f => f.Data.CategorySeq)
                             );
                         foreach (var item in list)
                         {
-                            arts.Add(new ArticleData(item, data.Data.SearchText));
+                            var cate = data.Items.FirstOrDefault(f => f.Data.CategorySeq == item.CategorySeq);
+                            arts.Add(new ArticleData(item, cate.Data.SearchText));
                         }
                     }
                     Button_CategoryModify.IsEnabled = true;
@@ -702,7 +850,7 @@ namespace NEWSViewer
             }
 
             var counts = SqlManager.Instance.SelectCountT_ARTICLE(cates.Select(f => f.CategorySeq));
-            foreach (var cate in cates.OrderBy(f => f.UpCategorySeq))
+            foreach (var cate in cates)
             {
                 CategoryData data = new CategoryData(cate);
                 if (cate.UpCategorySeq == null)
@@ -714,15 +862,17 @@ namespace NEWSViewer
                     var up = CategoryDatas.FirstOrDefault(f => f.Data.CategorySeq == cate.UpCategorySeq);
                     if (up != null)
                     {
-                        up.Children.Add(data);
+                        up.Items.Add(data);
                         var count = counts.FirstOrDefault(f => f.CategorySeq == data.Data.CategorySeq);
                         data.Count = count != null ? count.Count : 0;
+                    }
+                    else
+                    {
+
                     }
                 }
                 data.Refresh();
             }
-#if DEBUG
-#endif
             //TreeView_Category.Items.Refresh();
             //var tvi = TreeView_Category.ItemContainerGenerator.ContainerFromItem(CategoryDatas.First())
             //          as TreeViewItem;
@@ -731,7 +881,20 @@ namespace NEWSViewer
             //    tvi.IsSelected = true;
             //}
 
-            SearchStart();
+            Application.Current.Resources["NoReadColor"] = new SolidColorBrush(Global.Instance.NoReadColor);
+            Application.Current.Resources["TitleFontSize"] = Global.Instance.TitleFontSize;
+            Application.Current.Resources["ListItemMargin"] = new Thickness()
+            {
+                Top = Global.Instance.ListItemMargin,
+                Bottom = Global.Instance.ListItemMargin,
+            };
+
+#if DEBUG
+#else
+            SearchStart();                
+#endif
+
+
 
             System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback((o) => {
 
@@ -747,12 +910,12 @@ namespace NEWSViewer
             }
             CategoryData seled = CategoryDatas.FirstOrDefault(f =>
                                             f.IsSelected == true ||
-                                            f.Children.FirstOrDefault(f2 => f2.IsSelected == true) != null);
+                                            f.Items.FirstOrDefault(f2 => f2.IsSelected == true) != null);
             CategoryData subseled = null;
             if (seled != null)
             {
                 seled.IsSelected = false;
-                subseled = seled.Children.FirstOrDefault(f2 => f2.IsSelected == true);
+                subseled = seled.Items.FirstOrDefault(f2 => f2.IsSelected == true);
                 if (subseled != null)
                 {
                     subseled.IsSelected = false;
@@ -794,26 +957,54 @@ namespace NEWSViewer
                 Global.Instance.Alert("기본항목에는 추가할 수 없습니다.");
                 return;
             }
-            CategoryAdd uc = new CategoryAdd(null, data.Data.CategorySeq);
             if (data.Data.UpCategorySeq != null)
             {
                 data = CategoryDatas.FirstOrDefault(f => f.Data.CategorySeq == data.Data.UpCategorySeq);
             }
+            CategoryAdd uc = new CategoryAdd(null, data.Data.CategorySeq);
             PopupWindow window = new PopupWindow(uc);
             uc.OnOKClicked = (s) =>
             {
-                var before = data.Children.FirstOrDefault(f => f.Data.SearchText == uc.Data.Data.SearchText);
-                if (before != null)
+                CategoryData before = null;
+                foreach (var cate in CategoryDatas)
                 {
-                    Global.Instance.Alert("이미 등록된 검색어입니다.");
-                    SelectedTreeViewItem(before);
-                    return;
+                    before = cate.Items.FirstOrDefault(f => (f.Data != uc.Data.Data) &&
+                    (f.Data.SearchText == uc.Data.Data.SearchText));
+                    if (before != null)
+                    {
+                        Global.Instance.Alert(string.Format("이미 등록된 검색어입니다.\n{0}>{1}", cate.Data.Category, before.Data.SearchText));
+                        SelectedTreeViewItem(before);
+                        return;
+                    }
                 }
                 var d = SqlManager.Instance.InsertT_CATEGORY(uc.Data.Data);
                 uc.Data.Data = d;
-                data.Children.Add(uc.Data);
+                //data.Items.Add(uc.Data);
+                CategoryAddItem(data, uc.Data);
+                SelectedTreeViewItem(uc.Data);
                 uc.Data.Refresh();
             };
+        }
+
+        private static void CategoryAddItem(CategoryData parent, CategoryData data)
+        {
+            int? pre = null;
+            for (int i = 0; i < parent.Items.Count; i++)
+            {
+                if (string.CompareOrdinal(parent.Items[i].Data.SearchText, data.Data.SearchText) > 0)
+                {
+                    pre = i;
+                    break;
+                }
+            }
+            if (pre != null)
+            {
+                parent.Items.Insert(pre.Value, data);
+            }
+            else
+            {
+                parent.Items.Add(data);
+            }
         }
 
         private void Button_CategoryModify_Click(object sender, RoutedEventArgs e)
@@ -833,24 +1024,29 @@ namespace NEWSViewer
                     var before = CategoryDatas.FirstOrDefault(f => f.Data != uc.Data.Data && f.Data.Category == uc.Data.Data.Category);
                     if (before != null)
                     {
-                        Global.Instance.Alert("이미 등록된 검색어입니다.");
+                        Global.Instance.Alert("이미 등록된 폴더명입니다.");
                         SelectedTreeViewItem(before);
                         return;
                     }
                 }
                 else
                 {
-                    var before = CategoryDatas.FirstOrDefault(f => f.Data.CategorySeq == uc.Data.Data.UpCategorySeq);
-                    if (before != null)
+                    CategoryData before = null;
+                    foreach (var cate in CategoryDatas)
                     {
-                        before = before.Children.FirstOrDefault(f => f.Data != uc.Data.Data && f.Data.SearchText == uc.Data.Data.SearchText);
+                        before = cate.Items.FirstOrDefault(f => (f.Data != uc.Data.Data) &&
+                        (f.Data.SearchText == uc.Data.Data.SearchText));
                         if (before != null)
                         {
-                            Global.Instance.Alert("이미 등록된 검색어입니다.");
+                            Global.Instance.Alert(string.Format("이미 등록된 검색어입니다.\n{0}>{1}", cate.Data.Category, before.Data.SearchText));
                             SelectedTreeViewItem(before);
                             return;
                         }
                     }
+
+                    data.Items.Remove(uc.Data);
+                    CategoryAddItem(data, uc.Data);
+                    SelectedTreeViewItem(uc.Data);
                 }
                 SqlManager.Instance.UpdateT_CATEGORY(uc.Data.Data);
                 uc.Data.Refresh();
@@ -865,7 +1061,7 @@ namespace NEWSViewer
                 Global.Instance.Alert("항목을 선택 후 삭제해주세요.");
                 return;
             }
-            else if (data.Children.Count > 0)
+            else if (data.Items.Count > 0)
             {
                 Global.Instance.Alert("하위항목이 있으면 삭제할 수 없습니다.");
                 return;
@@ -884,10 +1080,10 @@ namespace NEWSViewer
                 }
                 else
                 {
-                    var parant = CategoryDatas.FirstOrDefault(f => f.Children.IndexOf(data) > -1);
+                    var parant = CategoryDatas.FirstOrDefault(f => f.Items.IndexOf(data) > -1);
                     if (parant != null)
                     {
-                        parant.Children.Remove(data);
+                        parant.Items.Remove(data);
                     }
                 }
                 SqlManager.Instance.DeleteT_CATEGORY(data.Data);
@@ -896,8 +1092,16 @@ namespace NEWSViewer
 
         private void MainWindow_Closed(object sender, EventArgs e)
         {
+            Save(Config);
+            IsSearchRun = false;
+            Searching = false;
+            SearchQueue.Clear();
+
+            SqlManager.Instance.DeleteT_ARTICLE(true);
+
             Global.Instance.WebDownloadManager.Dispose();
             Application.Current.Shutdown();
+            System.Environment.Exit(0);
         }
 
         private void Button_Folder_Click(object sender, RoutedEventArgs e)

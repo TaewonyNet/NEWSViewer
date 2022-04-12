@@ -194,6 +194,9 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="WpfScreenHelper, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\WpfScreenHelper.2.0.0\lib\net40\WpfScreenHelper.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -201,6 +204,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="Controls\CategoryAdd.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\CategoryEdit.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -239,6 +246,9 @@
     <Compile Include="Compositions\SqlParamCollection.cs" />
     <Compile Include="Controls\CategoryAdd.xaml.cs">
       <DependentUpon>CategoryAdd.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\CategoryEdit.xaml.cs">
+      <DependentUpon>CategoryEdit.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\OptionSetting.xaml.cs">
       <DependentUpon>OptionSetting.xaml</DependentUpon>

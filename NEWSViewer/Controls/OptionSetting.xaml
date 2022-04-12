@@ -29,6 +29,7 @@
             <TextBlock Text="읽은 항목 자동삭제 날짜(일 전, 0:즉시삭제)" Margin="5"/>
             <TextBlock Text="웹페이지 캐시 시간(초)" Margin="5"/>
             <TextBlock Text="기사 제목 글자 크기" Margin="5"/>
+            <TextBlock Text="기사 목록 글자 간격" Margin="5"/>
             <TextBlock Text="미리보기 시 즉시 읽음 표시" Margin="5"/>
             <mah:ColorPicker x:Name="ColorPicker_NoReadColor" Grid.Column="1" />
             <mah:ColorPicker x:Name="ColorPicker_ReadColor" Grid.Column="1"/>
@@ -39,6 +40,7 @@
             <mah:NumericUpDown x:Name="NumericUpDown_ReadAutoDeleteDay" Grid.Column="1" Minimum="0" Maximum="30" Interval="1"/>
             <mah:NumericUpDown x:Name="NumericUpDown_WebPageCacheSec" Grid.Column="1" Minimum="1" Maximum="86400" Interval="1"/>
             <mah:NumericUpDown x:Name="NumericUpDown_TitleFontSize" Grid.Column="1" Minimum="7" Maximum="30" Interval="1"/>
+            <mah:NumericUpDown x:Name="NumericUpDown_ListItemMargin" Grid.Column="1" Minimum="0" Maximum="20" Interval="1"/>
             <CheckBox x:Name="CheckBox_PreviewRead" Grid.Column="1" />
         </compositions:GridStackPanel>
         <StackPanel Grid.Row="2" HorizontalAlignment="Right"  VerticalAlignment="Bottom" Orientation="Horizontal" Margin="0 0 5 0">

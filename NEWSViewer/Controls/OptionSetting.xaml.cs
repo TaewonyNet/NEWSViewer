@@ -47,17 +47,12 @@ namespace NEWSViewer.Controls
             NumericUpDown_ReadAutoDeleteDay.Value = global.ReadAutoDeleteDay;
             NumericUpDown_WebPageCacheSec.Value = global.WebPageCacheSec;
             NumericUpDown_TitleFontSize.Value = global.TitleFontSize;
+            NumericUpDown_ListItemMargin.Value = global.ListItemMargin;
             CheckBox_PreviewRead.IsChecked = global.PreviewRead;
         }
 
         private void Button_OK_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = true;
-            if (OnOKClicked != null)
-            {
-                OnOKClicked.Invoke(this);
-            }
-
             global.NoReadColor = ColorPicker_NoReadColor.SelectedColor.Value;
             global.ReadColor = ColorPicker_ReadColor.SelectedColor.Value;
             global.HighlightColor= ColorPicker_HighlightColor.SelectedColor.Value;
@@ -67,8 +62,15 @@ namespace NEWSViewer.Controls
             global.ReadAutoDeleteDay = (int)NumericUpDown_ReadAutoDeleteDay.Value.Value;
             global.WebPageCacheSec = (int)NumericUpDown_WebPageCacheSec.Value.Value;
             global.TitleFontSize = (int)NumericUpDown_TitleFontSize.Value.Value;
+            global.ListItemMargin = (int)NumericUpDown_ListItemMargin.Value.Value;
             global.PreviewRead = CheckBox_PreviewRead.IsChecked.Value;
             global.SetOption();
+
+            DialogResult = true;
+            if (OnOKClicked != null)
+            {
+                OnOKClicked.Invoke(this);
+            }
 
             Window.Close();
         }

@@ -40,30 +40,17 @@ namespace NEWSViewer.Controls
 
             Button_OK.Click += Button_OK_Click;
             Button_Cancel.Click += Button_Cancel_Click;
+            Loaded += CategoryAdd_Loaded;
 
             if (data == null)
             {
                 data = new CategoryData(new T_CATEGORY());
                 data.Data.RegDate = DateTime.Now;
                 data.Data.Number = 0;
+                data.Data.IsSearchTitle = true;
             }
             else
             {
-            }
-            if (upCategory == null)
-            {
-                TextBox_Category.Focus();
-                TextBlock_SearchText.Visibility = Visibility.Collapsed;
-                TextBox_SearchText.Visibility = Visibility.Collapsed;
-                TextBlock_NoSearchText.Visibility = Visibility.Collapsed;
-                TextBox_NoSearchText.Visibility = Visibility.Collapsed;
-                CheckBox_SearchTitle.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                TextBox_SearchText.Focus();
-                TextBlock_Category.Visibility = Visibility.Collapsed;
-                TextBox_Category.Visibility = Visibility.Collapsed;
             }
             UpCategorySeq = upCategory;
             Data = data;
@@ -72,6 +59,48 @@ namespace NEWSViewer.Controls
             TextBox_SearchText.Text = Data.Data.SearchText;
             TextBox_NoSearchText.Text = Data.Data.NoSearchText;
             CheckBox_SearchTitle.IsChecked = Data.Data.IsSearchTitle;
+        }
+
+        private void CategoryAdd_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (UpCategorySeq == null)
+            {
+                TextBox_Category.SelectAll();
+                TextBox_Category.Focus();
+                TextBlock_SearchText.Visibility = Visibility.Collapsed;
+                TextBox_SearchText.Visibility = Visibility.Collapsed;
+                TextBlock_NoSearchText.Visibility = Visibility.Collapsed;
+                TextBox_NoSearchText.Visibility = Visibility.Collapsed;
+                CheckBox_SearchTitle.Visibility = Visibility.Collapsed;
+                TextBox_Category.KeyDown += (s, a) =>
+                 {
+                     if (a.Key == Key.Enter)
+                     {
+                         Button_OK_Click(sender, e);
+                     }
+                 };
+            }
+            else
+            {
+                TextBox_SearchText.SelectAll();
+                TextBox_SearchText.Focus();
+                TextBlock_Category.Visibility = Visibility.Collapsed;
+                TextBox_Category.Visibility = Visibility.Collapsed;
+                TextBox_SearchText.KeyDown += (s, a) =>
+                {
+                    if (a.Key == Key.Enter)
+                    {
+                        Button_OK_Click(sender, e);
+                    }
+                };
+                TextBox_NoSearchText.KeyDown += (s, a) =>
+                {
+                    if (a.Key == Key.Enter)
+                    {
+                        Button_OK_Click(sender, e);
+                    }
+                };
+            }
         }
 
         private void Button_OK_Click(object sender, RoutedEventArgs e)

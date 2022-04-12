@@ -69,7 +69,7 @@ namespace NEWSViewer
                     }
                 }
             }
-            SqlManager.Instance.DeleteT_ARTICLE(DateTime.Now.AddDays(Global.Instance.ReadAutoDeleteDay));
+            SqlManager.Instance.DeleteT_ARTICLE(DateTime.Now.AddDays(-Global.Instance.ReadAutoDeleteDay));
         }
 
 
@@ -159,7 +159,8 @@ namespace NEWSViewer
         }
 
         public string[] OptionKeys = new[] {
-            "NoReadColor" ,"ReadColor", "HighlightColor", "CrawlerOnceCount", "CrawlerOnceDay", "ReSearchTimeSec", "ReadAutoDeleteDay", "WebPageCacheSec", "PreviewRead", "TitleFontSize"
+            "NoReadColor" ,"ReadColor", "HighlightColor", "CrawlerOnceCount", "CrawlerOnceDay", "ReSearchTimeSec", "ReadAutoDeleteDay", "WebPageCacheSec", "PreviewRead", "TitleFontSize",
+            "ListItemMargin"
         };
         public Color NoReadColor = (Color)ColorConverter.ConvertFromString("#E7FFBF");
         public Color ReadColor = Colors.White;
@@ -171,5 +172,6 @@ namespace NEWSViewer
         public int WebPageCacheSec = 60;
         public bool PreviewRead = true;
         public int TitleFontSize = 12;
+        public int ListItemMargin = 3;
     }
 }

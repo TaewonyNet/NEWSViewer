@@ -26,7 +26,7 @@
             <TextBox x:Name="TextBox_Category" Grid.Column="1" Text="" Margin="5"/>
             <TextBox x:Name="TextBox_SearchText" Grid.Column="1" Text="" Margin="5"/>
             <TextBox x:Name="TextBox_NoSearchText" Grid.Column="1" Text="" Margin="5"/>
-            <CheckBox x:Name="CheckBox_SearchTitle" Grid.Column="1" Content="제목에서만 검색" Margin="5"/>
+            <CheckBox x:Name="CheckBox_SearchTitle" Grid.Column="1" Content="제목에서만 검색" Margin="5" IsChecked="True"/>
         </compositions:GridStackPanel>
         <StackPanel Grid.Row="2" HorizontalAlignment="Right"  VerticalAlignment="Bottom" Orientation="Horizontal" Margin="0 0 5 0">
             <Button x:Name="Button_OK" HorizontalAlignment="Center" VerticalAlignment="Center" Content="확인" Margin="5 5 5 5"/>

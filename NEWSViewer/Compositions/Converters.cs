@@ -121,7 +121,7 @@ namespace NEWSViewer.Compositions
             if (value != null && value is DateTime)
             {
                 var date = (DateTime)value;
-                return date.ToString("yyyy-MM-dd HH:mm:ss");
+                return date.ToString("yyyy-MM-dd HH:mm");
             }
             return null;
         }
@@ -181,6 +181,48 @@ namespace NEWSViewer.Compositions
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            return null;
+        }
+
+        #endregion
+    }
+    #endregion
+
+
+    #region StringToBoolConverter
+    public class StringToBoolConverter : IValueConverter
+    {
+        #region IValueConverter 멤버
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value != null)
+            {
+                if (value.Equals("1"))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value != null)
+            {
+                if (value.Equals(true))
+                {
+                    return "1";
+                }
+                else
+                {
+                    return "0";
+                }
+            }
             return null;
         }
 

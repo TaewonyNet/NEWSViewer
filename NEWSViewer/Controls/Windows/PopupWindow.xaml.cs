@@ -94,13 +94,10 @@ namespace NEWSViewer
         public PopupWindow(UserControl uc, Panel panel)
         {
             InitializeComponent();
-            Page = uc;
             Loaded += PopupWindow_Loaded;
-            Page.Loaded += Page_Loaded;
-            Page.Unloaded += Page_Unloaded;
             ClosingFinished += PopupWindow_ClosingFinished;
 
-            ContentsControl_Main.Content = Page;
+            Page = uc;
             Panel = panel;
             Panel.Children.Add(this);
         }
@@ -118,12 +115,21 @@ namespace NEWSViewer
             }
         }
 
+        public override void EndInit()
+        {
+            base.EndInit();
+        }
+
         private void PopupWindow_Loaded(object sender, RoutedEventArgs e)
         {
             if (OnLoadEvent != null)
             {
                 OnLoadEvent.Invoke(Page);
             }
+            ContentsControl_Main.Content = Page;
+
+            Page.Loaded += Page_Loaded;
+            Page.Unloaded += Page_Unloaded;
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)

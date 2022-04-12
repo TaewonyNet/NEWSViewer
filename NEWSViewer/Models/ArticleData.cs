@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using TaewonyNet.Common.Compositions;
@@ -97,7 +98,14 @@ namespace NEWSViewer
         public TextBlock GetHighlightText(string content, double fontsize = 12)
         {
             TextBlock textBlock = new TextBlock();
-            textBlock.FontSize = fontsize;
+            //Binding binding = new Binding
+            //{
+            //    Source = Application.Current.Resources,
+            //    Mode = BindingMode.OneWay,
+            //    Path = new PropertyPath("TitleFontSize"),
+            //};
+            //textBlock.SetBinding(TextBlock.FontSizeProperty, binding);
+            textBlock.SetValue(TextBlock.FontSizeProperty, double.Parse(Application.Current.Resources["TitleFontSize"].ToString()));
             if (Data != null) 
             {
                 if (string.IsNullOrWhiteSpace(_searchText) == false)

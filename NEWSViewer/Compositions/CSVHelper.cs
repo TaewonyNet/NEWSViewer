@@ -50,7 +50,7 @@ namespace NEWSViewer.Compositions
             return result;
         }
 
-        public bool WriteFile(List<object[]> rows)
+        public bool WriteFile(IEnumerable<object[]> rows)
         {
             bool result = false;
             if (string.IsNullOrEmpty(FileName) == false)
@@ -76,7 +76,7 @@ namespace NEWSViewer.Compositions
                             {
                                 sb.Append(GetString(aobjData[i]) + (i + 1 == aobjData.Length ? "" : ","));
                             }
-                            if (rows.Count > 0)
+                            if (rows.Count() > 0)
                             {
                                 sb.AppendLine();
                             }
