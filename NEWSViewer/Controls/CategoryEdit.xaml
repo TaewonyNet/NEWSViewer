@@ -21,8 +21,8 @@
             <TextBlock Text="폴더 및 검색어를 더블클릭하여 추가/수정/삭제 후 확인을 누르면 동기화됩니다." />
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button x:Name="Button_CategoryAdd" Content="추가" Margin="5 5 5 5"/>
-                <TextBox x:Name="TextBox_Search" Width="100" Margin="5 5 5 5"/>
-                <Button x:Name="Button_Search" Content="검색" Margin="5 5 5 5"/>
+                <TextBox x:Name="TextBox_Search" Width="150" Margin="5 5 0 5" mah:TextBoxHelper.ClearTextButton="True"/>
+                <Button x:Name="Button_Search" Content="검색" Margin="0 5 5 5"/>
             </StackPanel>
         </StackPanel>
         <DataGrid x:Name="DataGrid_Category" Grid.Row="1" Margin="5" AutoGenerateColumns="False">

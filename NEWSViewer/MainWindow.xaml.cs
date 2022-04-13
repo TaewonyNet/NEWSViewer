@@ -890,9 +890,9 @@ namespace NEWSViewer
             };
 
 #if DEBUG
-#else
-            SearchStart();                
+#else             
 #endif
+            SearchStart();   
 
 
 
