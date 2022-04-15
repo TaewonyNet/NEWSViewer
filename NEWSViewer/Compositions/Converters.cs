@@ -174,7 +174,7 @@ namespace NEWSViewer.Compositions
                 {
                     return FontWeights.Bold;
                 }
-                return FontWeights.Bold;
+                return FontWeights.Normal;
             }
             return null;
         }

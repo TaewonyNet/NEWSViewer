@@ -15,6 +15,8 @@ namespace NEWSViewer
     {
         public T_CATEGORY Data { get; set; }
 
+        //public TreeViewItem View { get; set; }
+
         public new ObservableCollection<CategoryData> Items { get; set; }
 
         public int? Count { get; set; }

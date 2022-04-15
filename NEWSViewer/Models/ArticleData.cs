@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -135,18 +136,21 @@ namespace NEWSViewer
             return textBlock;
         }
 
-        public List<Tuple<string, bool>> GetSearchText(string text, string saerch)
+        public static Regex regexreplace = new Regex(@"[^가-힣0-9a-zA-Z ]");
+
+        public static List<Tuple<string, bool>> GetSearchText(string text, string saerch)
         {
+            saerch = regexreplace.Replace(saerch, "");
             List<Tuple<string, bool>> result = new List<Tuple<string, bool>>();
             var t = text;
             while (t.Length > 0)
             {
-                var i = t.IndexOf(_searchText);
+                var i = t.IndexOf(saerch);
                 if (i > -1)
                 {
                     result.Add(new Tuple<string, bool>(t.Remove(i), false));
-                    result.Add(new Tuple<string, bool>(_searchText, true));
-                    t = t.Remove(0, i + _searchText.Length);
+                    result.Add(new Tuple<string, bool>(saerch, true));
+                    t = t.Remove(0, i + saerch.Length);
                 }
                 else
                 {

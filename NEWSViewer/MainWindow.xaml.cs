@@ -81,6 +81,21 @@ namespace NEWSViewer
             Button_CategoryAdd.Click += Button_CategoryAdd_Click;
             Button_CategoryModify.Click += Button_CategoryModify_Click;
             Button_CategoryDelete.Click += Button_CategoryDelete_Click;
+            Button_SearchCategory.Click += Button_SearchCategory_Click;
+            TextBox_Search.KeyDown += TextBox_Search_KeyDown;
+
+            MenuItem_KeywordDelete.Click += MenuItem_KeywordDelete_Click;
+            MenuItem_KeywordView.Click += MenuItem_KeywordView_Click;
+            MenuItem_ReadAll.Click += Button_ReadAll_Click;
+            MenuItem_ReadDelete.Click += Button_ReadDelete_Click;
+            MenuItem_BeforeDelete.Click += Button_BeforeDelete_Click;
+            MenuItem_Search.Click += Button_Search_Click;
+
+            MenuItem_CategoryAddFolder.Click += Button_CategoryAddFolder_Click;
+            MenuItem_CategoryAdd.Click += Button_CategoryAdd_Click;
+            MenuItem_CategoryModify.Click += Button_CategoryModify_Click;
+            MenuItem_CategoryDelete.Click += Button_CategoryDelete_Click;
+
             TreeView_Category.SelectedItemChanged += TreeView_Category_SelectedItemChanged;
             ListView_Acticle.SelectionChanged += ListView_Acticle_SelectionChanged;
             ListView_Acticle.MouseDoubleClick += ListView_Acticle_MouseDoubleClick;
@@ -117,7 +132,7 @@ namespace NEWSViewer
             view.ItemsPanel = new ItemsPanelTemplate(new FrameworkElementFactory(typeof(VirtualizingStackPanel)));
             // 리스트뷰 가상화
             var treeview = TreeView_Category;
-            treeview.SetValue(VirtualizingStackPanel.IsVirtualizingProperty, true);
+            //treeview.SetValue(VirtualizingStackPanel.IsVirtualizingProperty, true);
             treeview.SetValue(ScrollViewer.CanContentScrollProperty, true);
             treeview.SetValue(VirtualizingStackPanel.VirtualizationModeProperty, VirtualizationMode.Recycling);
             treeview.SetValue(ScrollViewer.IsDeferredScrollingEnabledProperty, true);
@@ -147,6 +162,104 @@ namespace NEWSViewer
             }
 
             Config = config;
+        }
+
+        private void MenuItem_KeywordView_Click(object sender, RoutedEventArgs e)
+        {
+            var selart = ListView_Acticle.SelectedItem as ArticleData;
+            if (selart == null)
+            {
+                Global.Instance.Alert("기사를 선택 해 주세요.");
+                return;
+            }
+            CategoryData before = null;
+            foreach (var cate in CategoryDatas)
+            {
+                before = cate.Items.FirstOrDefault(f => f.Data.CategorySeq == selart.Data.CategorySeq);
+                if (before != null)
+                {
+                    SelectedTreeViewItem(before);
+                    return;
+                }
+            }
+        }
+
+        private void MenuItem_KeywordDelete_Click(object sender, RoutedEventArgs e)
+        {
+            var selart = ListView_Acticle.SelectedItem as ArticleData;
+            if (selart == null)
+            {
+                Global.Instance.Alert("기사를 선택 해 주세요.");
+                return;
+            }
+            var confirm = Global.Instance.Confirm("해당 항목을 정말 삭제하겠습니까?");
+            confirm.OKClicked = (s) =>
+            {
+                CategoryData before = null;
+                foreach (var cate in CategoryDatas)
+                {
+                    before = cate.Items.FirstOrDefault(f => f.Data.CategorySeq == selart.Data.CategorySeq);
+                    if (before != null)
+                    {
+                        SqlManager.Instance.DeleteT_CATEGORY(before.Data);
+                        cate.Items.Remove(before);
+                        return;
+                    }
+                }
+            };
+        }
+
+        private void TextBox_Search_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                Button_SearchCategory_Click(sender, e);
+            }
+        }
+
+        private void Button_SearchCategory_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(TextBox_Search.Text) == false)
+            {
+                var search = TextBox_Search.Text.Trim();
+                var list = CategoryDatas.SelectMany(f => f.Items.Select(f2 => f2.Data.SearchText)).ToList();
+                var index = 0;
+                if ((TreeView_Category.SelectedItem is CategoryData)
+                    && ((TreeView_Category.SelectedItem as CategoryData).Data.UpCategorySeq != null))
+                {
+                    var txt = (TreeView_Category.SelectedItem as CategoryData).Data.SearchText;
+                    index = list.IndexOf(txt);
+                }
+                var sel = list.Skip(index + 1).FirstOrDefault(f =>
+                  f.IndexOf(search) > -1);
+                if (sel == null)
+                {
+                    sel = list.Take(index).FirstOrDefault(f =>
+                  f.IndexOf(search) > -1);
+                }
+                if (sel == null)
+                {
+                    Global.Instance.Alert("검색어를 찾을 수 없습니다.");
+                }
+                else
+                {
+                    CategoryData before = null;
+                    foreach (var cate in CategoryDatas)
+                    {
+                        before = cate.Items.FirstOrDefault(f => f.Data.SearchText == sel);
+                        if (before != null)
+                        {
+                            before.IsSelected = true;
+                            SelectedTreeViewItem(before);
+                            return;
+                        }
+                    }
+                    if (before == null)
+                    {
+
+                    }
+                }
+            }
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -741,10 +854,14 @@ namespace NEWSViewer
                 }
                 SqlManager.Instance.UpdateT_ARTICLE(uparts);
             }
-            Button_CategoryAdd.IsEnabled = false;
-            Button_CategoryModify.IsEnabled = false;
-            Button_CategoryDelete.IsEnabled = false;
+            (Resources["Menu_CategoryAdd"] as MenuItem).IsEnabled = false;
+            (Resources["Menu_CategoryModify"] as MenuItem).IsEnabled = false;
+            (Resources["Menu_CategoryDelete"] as MenuItem).IsEnabled = false;
             var data = e.NewValue as CategoryData;
+            if (e.NewValue == null)
+            {
+                return;
+            }
             List<ArticleData> arts = new List<ArticleData>();
             if (data != null)
             {
@@ -752,8 +869,8 @@ namespace NEWSViewer
                 {
                     // 전체
                     var list = SqlManager.Instance.SelectT_ARTICLE();
-                    
-                    var cates = CategoryDatas.SelectMany(f => f.Items.Select(f2 => f2.Data)); 
+
+                    var cates = CategoryDatas.SelectMany(f => f.Items.Select(f2 => f2.Data));
                     foreach (var item in list)
                     {
                         var cate = cates.FirstOrDefault(f => f.CategorySeq == item.CategorySeq);
@@ -772,7 +889,7 @@ namespace NEWSViewer
                     if (data.Data.UpCategorySeq != null)
                     {
                         // 검색어
-                        Button_CategoryAdd.IsEnabled = true;
+                        (Resources["Menu_CategoryAdd"] as MenuItem).IsEnabled = true;
                         var list = SqlManager.Instance.SelectT_ARTICLE(data.Data.CategorySeq);
                         foreach (var item in list)
                         {
@@ -782,7 +899,7 @@ namespace NEWSViewer
                     else
                     {
                         // 폴더
-                        Button_CategoryAdd.IsEnabled = true;
+                        (Resources["Menu_CategoryAdd"] as MenuItem).IsEnabled = true;
                         var list = SqlManager.Instance.SelectT_ARTICLE(
                             data.Items.Select(f => f.Data.CategorySeq)
                             );
@@ -792,8 +909,8 @@ namespace NEWSViewer
                             arts.Add(new ArticleData(item, cate.Data.SearchText));
                         }
                     }
-                    Button_CategoryModify.IsEnabled = true;
-                    Button_CategoryDelete.IsEnabled = true;
+                    (Resources["Menu_CategoryModify"] as MenuItem).IsEnabled = true;
+                    (Resources["Menu_CategoryDelete"] as MenuItem).IsEnabled = true;
                 }
 
                 List<T_ARTICLE> uparts = new List<T_ARTICLE>();
@@ -827,6 +944,18 @@ namespace NEWSViewer
             {
                 ArticleDatas.Add(art);
                 //art.Refresh();
+            }
+            if (data != null)
+            {
+                if (data.Data.UpCategorySeq == null)
+                {
+                    TextBlock_SelectedCategory.Text = data.Data.Category;
+                }
+                else
+                {
+                    var upcate = CategoryDatas.FirstOrDefault(f => f.Data.CategorySeq == data.Data.UpCategorySeq);
+                    TextBlock_SelectedCategory.Text = upcate.Data.Category + " > " + data.Data.SearchText;
+                }
             }
         }
 
@@ -894,8 +1023,6 @@ namespace NEWSViewer
 #endif
             SearchStart();   
 
-
-
             System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback((o) => {
 
             }));
@@ -922,11 +1049,46 @@ namespace NEWSViewer
                 }
             }
             data.IsSelected = true;
+            var upcate = CategoryDatas.FirstOrDefault(f => f.Data.CategorySeq == data.Data.UpCategorySeq);
+            if (upcate != null)
+            {
+                if (upcate.IsExpanded == false)
+                {
+                    upcate.IsExpanded = true;
+                }
+                TreeView_Category.UpdateLayout();
+
+                //var item = TreeView_Category.ItemContainerGenerator.ContainerFromItem(upcate);
+                //if (item != null)
+                //{
+                //    var idx = (item as TreeViewItem).Items.IndexOf(data);
+                //    (item as TreeViewItem).BringIntoView(new Rect(100, 100, 100, 100));
+                //}
+            }
+            else
+            {
+                //var item = TreeView_Category.ItemContainerGenerator.ContainerFromItem(data);
+                //if (item != null)
+                //{
+                //    (item as TreeViewItem).BringIntoView();
+                //}
+            }
+        }
+
+        private void TreeViewSelectedItemChanged(object sender, RoutedEventArgs e)
+        {
+            TreeViewItem item = sender as TreeViewItem;
+            if (item != null)
+            {
+                //(item.DataContext as CategoryData).View = item;
+                item.BringIntoView();
+                e.Handled = true;
+            }
         }
 
         private void Button_CategoryAddFolder_Click(object sender, RoutedEventArgs e)
         {
-            CategoryAdd uc = new CategoryAdd(null);
+            CategoryAdd uc = new CategoryAdd(null, null, CategoryDatas);
             PopupWindow window = new PopupWindow(uc);
             uc.OnOKClicked = (s) =>
             {
@@ -961,8 +1123,26 @@ namespace NEWSViewer
             {
                 data = CategoryDatas.FirstOrDefault(f => f.Data.CategorySeq == data.Data.UpCategorySeq);
             }
-            CategoryAdd uc = new CategoryAdd(null, data.Data.CategorySeq);
+            CategoryAdd uc = new CategoryAdd(null, data.Data.CategorySeq, CategoryDatas);
             PopupWindow window = new PopupWindow(uc);
+            uc.OnOKAndClicked = (s) => {
+                CategoryData before = null;
+                foreach (var cate in CategoryDatas)
+                {
+                    before = cate.Items.FirstOrDefault(f => (f.Data != uc.Data.Data) &&
+                    (f.Data.SearchText == uc.Data.Data.SearchText));
+                    if (before != null)
+                    {
+                        Global.Instance.Alert(string.Format("이미 등록된 검색어입니다.\n{0}>{1}", cate.Data.Category, before.Data.SearchText));
+                        return;
+                    }
+                }
+                var d = SqlManager.Instance.InsertT_CATEGORY(uc.Data.Data);
+                uc.Data.Data = d;
+                //data.Items.Add(uc.Data);
+                data.Items.Remove(uc.Data);
+                CategoryAddItem(uc.UpCategory, uc.Data);
+            };
             uc.OnOKClicked = (s) =>
             {
                 CategoryData before = null;
@@ -980,7 +1160,8 @@ namespace NEWSViewer
                 var d = SqlManager.Instance.InsertT_CATEGORY(uc.Data.Data);
                 uc.Data.Data = d;
                 //data.Items.Add(uc.Data);
-                CategoryAddItem(data, uc.Data);
+                data.Items.Remove(uc.Data);
+                CategoryAddItem(uc.UpCategory, uc.Data);
                 SelectedTreeViewItem(uc.Data);
                 uc.Data.Refresh();
             };
@@ -1015,7 +1196,8 @@ namespace NEWSViewer
                 Global.Instance.Alert("항목을 선택 후 수정해주세요.");
                 return;
             }
-            CategoryAdd uc = new CategoryAdd(data, data.Data.UpCategorySeq);
+            var upcate = CategoryDatas.FirstOrDefault(f => f.Data.CategorySeq == data.Data.UpCategorySeq);
+            CategoryAdd uc = new CategoryAdd(data, data.Data.UpCategorySeq, CategoryDatas);
             PopupWindow window = new PopupWindow(uc);
             uc.OnOKClicked = (s) =>
             {
@@ -1044,8 +1226,8 @@ namespace NEWSViewer
                         }
                     }
 
-                    data.Items.Remove(uc.Data);
-                    CategoryAddItem(data, uc.Data);
+                    upcate.Items.Remove(uc.Data);
+                    CategoryAddItem(uc.UpCategory, uc.Data);
                     SelectedTreeViewItem(uc.Data);
                 }
                 SqlManager.Instance.UpdateT_CATEGORY(uc.Data.Data);

@@ -5,7 +5,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NEWSViewer"
-        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" xmlns:controlzex="urn:controlzex" xmlns:System="clr-namespace:System;assembly=mscorlib" x:Name="window" x:Class="NEWSViewer.MainWindow"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" xmlns:controlzex="urn:controlzex" xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="NEWSViewer.MainWindow"
+        xmlns:contol="clr-namespace:NEWSViewer.Controls"
         mc:Ignorable="d"
         Title="NEWSViewer" Height="450" Width="800">
     <Window.Resources>
@@ -14,6 +15,14 @@
         <convert:ArticleHighlightColorConveter x:Key="ArticleHighlightColorConveter"/>
         <convert:DateTimeStringConveter x:Key="DateTimeStringConveter"/>
         <convert:TrueFontBoldConverter x:Key="TrueFontBoldConverter"/>
+        <MenuItem x:Name="Menu_ReadAll" x:Key="Menu_ReadAll" Header="전체읽기"/>
+        <MenuItem x:Name="Menu_ReadDelete" x:Key="Menu_ReadDelete" Header="읽은뉴스삭제" Visibility="Collapsed"/>
+        <MenuItem x:Name="Menu_BeforeDelete" x:Key="Menu_BeforeDelete" Header="이전뉴스삭제"/>
+        <MenuItem x:Name="Menu_Search" x:Key="Menu_Search" Header="검색시작"/>
+        <MenuItem x:Name="Menu_CategoryAddFolder" x:Key="Menu_CategoryAddFolder" Header="폴더추가"/>
+        <MenuItem x:Name="Menu_CategoryAdd" x:Key="Menu_CategoryAdd" Header="추가" IsEnabled="False"/>
+        <MenuItem x:Name="Menu_CategoryModify" x:Key="Menu_CategoryModify" Header="수정" IsEnabled="False"/>
+        <MenuItem x:Name="Menu_CategoryDelete" x:Key="Menu_CategoryDelete" Header="삭제" IsEnabled="False"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -27,10 +36,10 @@
             <Button x:Name="Button_EditCategory" Content="검색어직접편집" Margin="0 5 5 5"/>
         </StackPanel>
         <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
-            <Button x:Name="Button_ReadAll" Content=" 전체읽기 " Margin="0 5 5 5" Background="{DynamicResource NoReadColor}"/>
-            <Button x:Name="Button_ReadDelete" Content="읽은뉴스삭제" Margin="0 5 5 5" Visibility="Collapsed"/>
-            <Button x:Name="Button_BeforeDelete" Content="이전뉴스삭제" Margin="0 5 5 5"/>
-            <Button x:Name="Button_Search" Content="검색시작" Margin="0 5 5 5"/>
+            <Button x:Name="Button_ReadAll" Content="{Binding Header, Source={StaticResource Menu_ReadAll}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_ReadAll}}"  Visibility="{Binding Visibility, Source={StaticResource Menu_ReadAll}}" Margin="0 5 5 5" Background="{DynamicResource NoReadColor}" Padding="10 0"/>
+            <Button x:Name="Button_ReadDelete" Content="{Binding Header, Source={StaticResource Menu_ReadDelete}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_ReadDelete}}"  Visibility="{Binding Visibility, Source={StaticResource Menu_ReadDelete}}" Margin="0 5 5 5" />
+            <Button x:Name="Button_BeforeDelete" Content="{Binding Header, Source={StaticResource Menu_BeforeDelete}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_BeforeDelete}}"  Visibility="{Binding Visibility, Source={StaticResource Menu_BeforeDelete}}" Margin="0 5 5 5"/>
+            <Button x:Name="Button_Search" Content="{Binding Header, Source={StaticResource Menu_Search}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_Search}}"  Visibility="{Binding Visibility, Source={StaticResource Menu_Search}}" Margin="0 5 5 5"/>
             <Grid Width="100" Margin="0 5 5 5" >
                 <ProgressBar x:Name="ProgressBar_Search" Value="100" />
                 <TextBlock x:Name="TextBlock_Search" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
@@ -52,34 +61,62 @@
             </Grid.RowDefinitions>
             <GridSplitter x:Name="GridSplitter_Horizontal" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Bottom" Height="5" HorizontalAlignment="Stretch" />
             <GridSplitter x:Name="GridSplitter_Vertical" Grid.RowSpan="2" Width="5" HorizontalAlignment="Right"/>
-            <TreeView x:Name="TreeView_Category" Grid.RowSpan="2" Margin="5 40 10 5">
-                <TreeView.ItemContainerStyle>
-                    <Style TargetType="{x:Type TreeViewItem}">
-                        <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
-                        <Setter Property="IsSelected" Value="{Binding IsSelected}"/>
-                        <Setter Property="Padding" Value="3 2"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="BorderBrush" Value="{DynamicResource NoReadColor}"/>
-                                <Setter Property="BorderThickness" Value="2"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </TreeView.ItemContainerStyle>
-                <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate ItemsSource="{Binding Items}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Data.Category}"/>
-                            <TextBlock Text="{Binding Data.SearchText}"/>
-                            <StackPanel Orientation="Horizontal" Visibility="{Binding Data.UpCategorySeq, Converter={StaticResource NotNullToVisibility}}">
-                                <TextBlock Text="("/>
-                                <TextBlock Text="{Binding Count}"/>
-                                <TextBlock Text=")"/>
+            <Grid Grid.RowSpan="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <WrapPanel Margin="5 0 5 0">
+                    <StackPanel Orientation="Horizontal" Margin="0">
+                        <TextBox x:Name="TextBox_Search" Width="150" Margin="0 0 0 5" mah:TextBoxHelper.ClearTextButton="True"/>
+                        <Button x:Name="Button_SearchCategory" Content="검색" Margin="0 0 0 5"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0">
+                        <Button x:Name="Button_CategoryAddFolder" HorizontalAlignment="Center" VerticalAlignment="Center" Content="{Binding Header, Source={StaticResource Menu_CategoryAddFolder}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_CategoryAddFolder}}"  Visibility="{Binding Visibility, Source={StaticResource Menu_CategoryAddFolder}}" Margin="0 0 5 5"/>
+                        <Button x:Name="Button_CategoryAdd" HorizontalAlignment="Center" VerticalAlignment="Center" Content="{Binding Header, Source={StaticResource Menu_CategoryAdd}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_CategoryAdd}}"  Visibility="{Binding Visibility, Source={StaticResource Menu_CategoryAdd}}" Margin="0 0 5 5"/>
+                        <Button x:Name="Button_CategoryModify" HorizontalAlignment="Center" VerticalAlignment="Center" Content="{Binding Header, Source={StaticResource Menu_CategoryModify}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_CategoryModify}}"  Visibility="{Binding Visibility, Source={StaticResource Menu_CategoryModify}}" Margin="0 0 5 5"/>
+                        <Button x:Name="Button_CategoryDelete" HorizontalAlignment="Center" VerticalAlignment="Center" Content="{Binding Header, Source={StaticResource Menu_CategoryDelete}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_CategoryDelete}}"  Visibility="{Binding Visibility, Source={StaticResource Menu_CategoryDelete}}" Margin="0 0 0 5"/>
+                    </StackPanel>
+                </WrapPanel>
+                <TreeView x:Name="TreeView_Category" Grid.Row="1" Margin="5 5 10 5">
+                    <TreeView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem x:Name="MenuItem_CategoryAddFolder" Header="{Binding Header, Source={StaticResource Menu_CategoryAddFolder}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_CategoryAddFolder}}"/>
+                            <MenuItem x:Name="MenuItem_CategoryAdd" Header="{Binding Header, Source={StaticResource Menu_CategoryAdd}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_CategoryAdd}}"/>
+                            <MenuItem x:Name="MenuItem_CategoryModify" Header="{Binding Header, Source={StaticResource Menu_CategoryModify}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_CategoryModify}}"/>
+                            <MenuItem x:Name="MenuItem_CategoryDelete" Header="{Binding Header, Source={StaticResource Menu_CategoryDelete}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_CategoryDelete}}"/>
+                        </ContextMenu>
+                    </TreeView.ContextMenu>
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                            <!--<EventSetter Event="Loaded" Handler="TreeViewSelectedItemChanged" />-->
+                            <EventSetter Event="Selected" Handler="TreeViewSelectedItemChanged" />
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                            <Setter Property="Padding" Value="3 2"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource NoReadColor}"/>
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                    <!--<Setter Property="contol:TreeViewItemBehavior.IsBroughtIntoViewWhenSelected" Value="True" />-->
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Items}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Data.Category}"/>
+                                <TextBlock Text="{Binding Data.SearchText}"/>
+                                <StackPanel Orientation="Horizontal" Visibility="{Binding Data.UpCategorySeq, Converter={StaticResource NotNullToVisibility}}">
+                                    <TextBlock Text="("/>
+                                    <TextBlock Text="{Binding Count}"/>
+                                    <TextBlock Text=")"/>
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                    </HierarchicalDataTemplate>
-                </TreeView.ItemTemplate>
-                <!--<TreeView.ItemTemplate>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                    <!--<TreeView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="123"/>
@@ -97,28 +134,38 @@
                 <TreeViewItem>
                     dddd
                 </TreeViewItem>-->
-                <local:CategoryData>
-                    <local:CategoryData.Data>
-                        <local:T_CATEGORY Category="전체"/>
-                    </local:CategoryData.Data>
-                    <local:CategoryData.Items>
-                        <local:CategoryData>
-                            <local:CategoryData.Data>
-                                <local:T_CATEGORY Category="하위"/>
-                            </local:CategoryData.Data>
-                        </local:CategoryData>
-                    </local:CategoryData.Items>
-                </local:CategoryData>
-            </TreeView>
-            <StackPanel Grid.RowSpan="2" HorizontalAlignment="Right"  VerticalAlignment="Top" Orientation="Horizontal" Margin="0 0 5 0">
-                <Button x:Name="Button_CategoryAddFolder" HorizontalAlignment="Center" VerticalAlignment="Center" Content="폴더추가" Margin="5 5 5 5"/>
-                <Button x:Name="Button_CategoryAdd" HorizontalAlignment="Center" VerticalAlignment="Center" Content="추가" Margin="0 5 5 5" IsEnabled="False"/>
-                <Button x:Name="Button_CategoryModify" HorizontalAlignment="Center" VerticalAlignment="Center" Content="수정" Margin="0 5 5 5" IsEnabled="False"/>
-                <Button x:Name="Button_CategoryDelete" HorizontalAlignment="Center" VerticalAlignment="Center" Content="삭제" Margin="0 5 5 5" IsEnabled="False"/>
-            </StackPanel>
-            <ListView x:Name="ListView_Acticle" Grid.Column="1" Margin="5" IsTextSearchEnabled="False" SelectionMode="Single" >
-
-                <!--VirtualizingStackPanel.IsVirtualizing="True" 
+                    <local:CategoryData>
+                        <local:CategoryData.Data>
+                            <local:T_CATEGORY Category="전체"/>
+                        </local:CategoryData.Data>
+                        <local:CategoryData.Items>
+                            <local:CategoryData>
+                                <local:CategoryData.Data>
+                                    <local:T_CATEGORY Category="하위"/>
+                                </local:CategoryData.Data>
+                            </local:CategoryData>
+                        </local:CategoryData.Items>
+                    </local:CategoryData>
+                </TreeView>
+            </Grid>
+            <Grid Grid.Column="1" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="TextBlock_SelectedCategory" FontWeight="Bold" Margin="10 5" FontSize="14"/>
+                <ListView x:Name="ListView_Acticle" Grid.Row="1" IsTextSearchEnabled="False" SelectionMode="Single" >
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem x:Name="MenuItem_KeywordView" Header="선택키워드 목록보기"/>
+                            <MenuItem x:Name="MenuItem_KeywordDelete" Header="선택키워드 삭제"/>
+                            <MenuItem x:Name="MenuItem_ReadAll" Header="{Binding Header, Source={StaticResource Menu_ReadAll}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_ReadAll}}" Visibility="{Binding Visibility, Source={StaticResource Menu_ReadAll}}"/>
+                            <MenuItem x:Name="MenuItem_ReadDelete" Header="{Binding Header, Source={StaticResource Menu_ReadDelete}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_ReadDelete}}" Visibility="{Binding Visibility, Source={StaticResource Menu_ReadDelete}}"/>
+                            <MenuItem x:Name="MenuItem_BeforeDelete" Header="{Binding Header, Source={StaticResource Menu_BeforeDelete}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_BeforeDelete}}" Visibility="{Binding Visibility, Source={StaticResource Menu_BeforeDelete}}"/>
+                            <MenuItem x:Name="MenuItem_Search" Header="{Binding Header, Source={StaticResource Menu_Search}}" IsEnabled="{Binding IsEnabled, Source={StaticResource Menu_Search}}" Visibility="{Binding Visibility, Source={StaticResource Menu_Search}}"/>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                    <!--VirtualizingStackPanel.IsVirtualizing="True" 
                       ScrollViewer.CanContentScroll="True"  
                       VirtualizingStackPanel.VirtualizationMode="Recycling"
                       ScrollViewer.IsDeferredScrollingEnabled="True">
@@ -127,54 +174,56 @@
                         <VirtualizingStackPanel/>
                     </ItemsPanelTemplate>
                 </ListView.ItemsPanel>-->
-                
-                <!--<ListView.ItemsPanel>
+
+                    <!--<ListView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <VirtualizingStackPanel>
-                            --><!--Less memeory usage--><!--
+                            -->
+                    <!--Less memeory usage-->
+                    <!--
                         </VirtualizingStackPanel>
                     </ItemsPanelTemplate>
                 </ListView.ItemsPanel>-->
-                <!--<ListView.CacheMode>
+                    <!--<ListView.CacheMode>
                     <BitmapCache SnapsToDevicePixels="True"/>
                 </ListView.CacheMode>-->
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="{x:Type ListViewItem}">
-                        <Setter Property="Background" Value="{Binding Data.IsRead, Converter={StaticResource ArticleHighlightColorConveter}}" />
-                        <Setter x:Name="ListView_ItemMargin" Property="Margin" Value="{DynamicResource ListItemMargin}"/>
-                    </Style>
-                </ListView.ItemContainerStyle>
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="제목">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <ContentPresenter Content="{Binding Title}" TextBlock.FontWeight="{Binding Data.IsRead, Converter={StaticResource TrueFontBoldConverter}}"/>
-                                        <!--<ContentPresenter Content="{Binding Title2}" TextBlock.FontWeight="{Binding Data.IsRead, Converter={StaticResource TrueParamConverter}, ConverterParameter=Bold}"/>-->
-                                    </Grid>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="기사입력시간">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <TextBlock Text="{Binding Data.InfoTime, Converter={StaticResource DateTimeStringConveter}}"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="수집시간">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <TextBlock Text="{Binding Data.RegDate, Converter={StaticResource DateTimeStringConveter}}"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <!--<GridViewColumn Header="언론사">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <Setter Property="Background" Value="{Binding Data.IsRead, Converter={StaticResource ArticleHighlightColorConveter}}" />
+                            <Setter x:Name="ListView_ItemMargin" Property="Margin" Value="{DynamicResource ListItemMargin}"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="제목">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <ContentPresenter Content="{Binding Title}" TextBlock.FontWeight="{Binding Data.IsRead, Converter={StaticResource TrueFontBoldConverter}}"/>
+                                            <!--<ContentPresenter Content="{Binding Title2}" TextBlock.FontWeight="{Binding Data.IsRead, Converter={StaticResource TrueParamConverter}, ConverterParameter=Bold}"/>-->
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="기사입력시간">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <TextBlock Text="{Binding Data.InfoTime, Converter={StaticResource DateTimeStringConveter}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="수집시간">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <TextBlock Text="{Binding Data.RegDate, Converter={StaticResource DateTimeStringConveter}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <!--<GridViewColumn Header="언론사">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -183,18 +232,18 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>-->
-                        <GridViewColumn Header="읽음">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <TextBlock Text="{Binding Data.IsRead}"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                    </GridView>
-                </ListView.View>
-                <!--<local:ArticleData>
+                            <GridViewColumn Header="읽음">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <TextBlock Text="{Binding Data.IsRead}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                    <!--<local:ArticleData>
                     <local:ArticleData.Data>
                         <local:T_ARTICLE Title="[특징주] 뭐시기" Press="언론1" InfoTime="2022-04-12" IsRead="True"/>
                     </local:ArticleData.Data>
@@ -204,7 +253,8 @@
                         <local:T_ARTICLE Title="[특징주] 뭐시기" Press="언론1" InfoTime="2022-04-12"  IsRead="False"/>
                     </local:ArticleData.Data>
                 </local:ArticleData>-->
-            </ListView>
+                </ListView>
+            </Grid>
             <Grid x:Name="Grid_ArticleContent" Grid.Row="1" Grid.Column="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>

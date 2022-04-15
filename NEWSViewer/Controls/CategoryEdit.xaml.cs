@@ -69,8 +69,8 @@ namespace NEWSViewer.Controls
             {
                 var search = TextBox_Search.Text.Trim();
                 var index = DataGrid_Category.SelectedIndex;
-                var sel = Data.Skip(index+1).FirstOrDefault(f =>
-                (f[0].IndexOf(search) > -1) || (f[1].IndexOf(search) > -1) || (f[2].IndexOf(search) > -1));
+                var sel = Data.Skip(index + 1).FirstOrDefault(f =>
+                  (f[0].IndexOf(search) > -1) || (f[1].IndexOf(search) > -1) || (f[2].IndexOf(search) > -1));
                 if (sel == null)
                 {
                     sel = Data.Take(index).FirstOrDefault(f =>

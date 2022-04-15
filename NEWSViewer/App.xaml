@@ -67,6 +67,9 @@
                 <Setter Property="mah:ControlsHelper.FocusBorderThickness" Value="2"/>
                 <Setter Property="mah:ControlsHelper.MouseOverBorderBrush" Value="{DynamicResource MahApps.Brushes.Button.Border.MouseOver}"/>
             </Style>
+            <!--<Style TargetType="MenuItem">
+                <Setter Property="Foreground" Value="Black"/>
+            </Style>-->
         </ResourceDictionary>
     </Application.Resources>
 </Application>
