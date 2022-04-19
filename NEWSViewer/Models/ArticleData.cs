@@ -140,10 +140,11 @@ namespace NEWSViewer
 
         public static List<Tuple<string, bool>> GetSearchText(string text, string saerch)
         {
-            saerch = regexreplace.Replace(saerch, "");
+            saerch = saerch.Trim();
+            //saerch = regexreplace.Replace(saerch, "");
             List<Tuple<string, bool>> result = new List<Tuple<string, bool>>();
             var t = text;
-            while (t.Length > 0)
+            while (string.IsNullOrEmpty(saerch) == false && t.Length > 0)
             {
                 var i = t.IndexOf(saerch);
                 if (i > -1)

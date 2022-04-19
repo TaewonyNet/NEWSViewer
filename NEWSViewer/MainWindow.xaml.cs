@@ -266,6 +266,8 @@ namespace NEWSViewer
         {
             SelectedTreeViewItem(CategoryDatas.First());
 
+            SearchStart();
+
             Timer = new Timer();
             Timer.Elapsed += Timer_Elapsed;
             Timer.Interval = TimeSpan.FromSeconds(0.05).TotalMilliseconds;
@@ -1021,7 +1023,6 @@ namespace NEWSViewer
 #if DEBUG
 #else             
 #endif
-            SearchStart();   
 
             System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback((o) => {
 
