@@ -363,7 +363,7 @@ UPDATE T_ARTICLE
 SET 
 IsDelete = 1,
 ModDate = datetime('now')
-WHERE InfoTime<@enddate AND IsRead=1
+WHERE InfoTime<@enddate AND IsRead=1 AND IsDelete != 1
 ", p);
         }
 

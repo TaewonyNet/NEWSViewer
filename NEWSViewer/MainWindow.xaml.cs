@@ -776,8 +776,11 @@ namespace NEWSViewer
                 foreach (var scate in cate.Items)
                 {
                     var count = counts.FirstOrDefault(f => f.CategorySeq == scate.Data.CategorySeq);
-                    scate.Count = count != null ? count.Count : 0;
-                    scate.Refresh();
+                    var newcount = count != null ? count.Count : 0;
+                    if (scate.Count != newcount)
+                    {
+                        scate.Refresh();
+                    }
                 }
             }
             else

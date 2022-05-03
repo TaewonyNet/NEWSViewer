@@ -310,7 +310,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\dari\Source\TaewonyNet.Common\TaewonyNet.Common.csproj">
+    <ProjectReference Include="..\..\..\dari\Source\TaewonyNet.Common\TaewonyNet.Common.csproj">
       <Project>{dfdbeeef-d21f-4bd1-b338-e9b2dc2db6a5}</Project>
       <Name>TaewonyNet.Common</Name>
     </ProjectReference>
