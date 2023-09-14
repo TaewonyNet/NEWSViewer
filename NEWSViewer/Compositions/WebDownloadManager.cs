@@ -28,7 +28,7 @@ namespace NEWSViewer.Compositions
         public const string url_naver_news_search = "https://search.naver.com/search.naver?where=news&sm=tab_pge&query={0}&sort=1&photo=0&field={1}&pd=3&ds={2:yyyy.MM.dd}&de={3:yyyy.MM.dd}&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from{2:yyyyMMdd}to{3:yyyyMMdd},a:t&start={4}";
 
 
-        public WebDownloadManager(int threadcount = 2, int maxaction = 85, int period = 60, string path = "") : base(threadcount, maxaction, period)
+        public WebDownloadManager(int threadcount, int maxaction, int period, string path, int waittimesec = 0) : base(threadcount, maxaction, period, waittimesec)
         {
             string dir = path;
             if (string.IsNullOrEmpty(dir) == true)
@@ -72,6 +72,7 @@ namespace NEWSViewer.Compositions
                 Log.Error("NaverNewsSearch Url:{0} Error:{1}", url, "Download Failed");
                 return null;
             }
+
         }
 
         public Tuple<List<T_ARTICLE>, int> GetItems(string html)

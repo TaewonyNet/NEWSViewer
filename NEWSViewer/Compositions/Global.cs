@@ -40,7 +40,7 @@ namespace NEWSViewer
             Configuration.Self = new Configuration();
             var datapath = System.IO.Path.Combine(BasePath, "data");
             var logpath = System.IO.Path.Combine(BasePath, "logs");
-            WebDownloadManager = new WebDownloadManager(2, 100, 60, datapath);
+            WebDownloadManager = new WebDownloadManager(2, 4, 3, datapath);
             GetOption();
 
             System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback((o) => {

@@ -9,7 +9,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>NEWSViewer</RootNamespace>
     <AssemblyName>NEWSViewer</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -310,7 +310,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\dari\Source\TaewonyNet.Common\TaewonyNet.Common.csproj">
+    <ProjectReference Include="..\..\TaewonyNetFramework\Source\TaewonyNet.Common\TaewonyNet.Common.csproj">
       <Project>{dfdbeeef-d21f-4bd1-b338-e9b2dc2db6a5}</Project>
       <Name>TaewonyNet.Common</Name>
     </ProjectReference>

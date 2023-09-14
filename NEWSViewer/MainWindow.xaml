@@ -110,7 +110,7 @@
                                 <TextBlock Text="{Binding Data.SearchText}"/>
                                 <StackPanel Orientation="Horizontal" Visibility="{Binding Data.UpCategorySeq, Converter={StaticResource NotNullToVisibility}}">
                                     <TextBlock Text="("/>
-                                    <TextBlock Text="{Binding Count}"/>
+                                    <TextBlock Text="{Binding Count, Mode=OneWay}"/>
                                     <TextBlock Text=")"/>
                                 </StackPanel>
                             </StackPanel>
