@@ -453,7 +453,6 @@ namespace NEWSViewer
                                 }
                             }
                             int page = 1;
-                            var barts = SqlManager.Instance.SelectT_ARTICLE(cate.Data.CategorySeq);
                             do
                             {
                                 try
@@ -485,6 +484,7 @@ namespace NEWSViewer
                             }
                             while (list.Count > 0 && list.Count <= Global.Instance.CrawlerOnceCount && list.Min(f => f.InfoTime) > betime);
 
+                            var barts = SqlManager.Instance.SelectT_ARTICLE(cate.Data.CategorySeq);
                             for (int i = list.Count - 1; i >= 0; i--)
                             {
                                 if ((barts.FirstOrDefault(f => f.Link == list[i].Link) != null) ||

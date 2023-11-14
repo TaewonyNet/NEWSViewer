@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TaewonyNet.Common.Compositions;
 using TaewonyNet.Common.Interfaces;
+using TaewonyNet.Common.Models;
 
 namespace NEWSViewer.Compositions
 {
@@ -13,8 +14,8 @@ namespace NEWSViewer.Compositions
     {
         public double Cache = TimeSpan.FromSeconds(60).TotalDays;
 
-        public const string url_naver_search_desc_m = "https://m.search.naver.com/search.naver?where=m_news&query={0}&sm=tab_opt&sort=1&photo=0&field=1&nso=so:dd,p:all&start={1}";
-        public const string url_naver_search_m = "https://m.search.naver.com/search.naver?where=m_news&query={0}&sort=1&sm=tab_smr&nso=so:dd,p:all,a:all&start={1}";
+        //public const string url_naver_search_desc_m = "https://m.search.naver.com/search.naver?where=m_news&query={0}&sm=tab_opt&sort=1&photo=0&field=1&nso=so:dd,p:all&start={1}";
+        //public const string url_naver_search_m = "https://m.search.naver.com/search.naver?where=m_news&query={0}&sort=1&sm=tab_smr&nso=so:dd,p:all,a:all&start={1}";
 
         //https://search.naver.com/search.naver?where=news&sm=tab_pge&query=%ED%8A%B9%EC%A7%95%EC%A3%BC&sort=1&photo=0&field=1&pd=3&ds=2022.04.01&de=2022.04.05&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from20220401to20220405,a:t&start=41 네이버 뉴스 검색 제목위주
         //https://search.naver.com/search.naver?where=news&sm=tab_pge&query=%ED%8A%B9%EC%A7%95%EC%A3%BC&sort=1&photo=0&field=0&pd=3&ds=2022.04.01&de=2022.04.05&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from20220401to20220405,a:t&start=41 네이버 뉴스 검색 
@@ -22,10 +23,10 @@ namespace NEWSViewer.Compositions
         public string[] file_naver_news_search = {
             "https://search.naver.com/search.naver?where=news&sm=tab_pge&query=",
             "&sort=1&photo=0&field=", "&pd=3&ds=",
-            "&de=", "&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from",
+            "&de=", "&mynews=0&office_type=0&office_section_code=0&news_office_checked=&office_category=0&service_area=0&nso=so:dd,p:from",
             "to", ",a:t&start=",
         };
-        public const string url_naver_news_search = "https://search.naver.com/search.naver?where=news&sm=tab_pge&query={0}&sort=1&photo=0&field={1}&pd=3&ds={2:yyyy.MM.dd}&de={3:yyyy.MM.dd}&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so:dd,p:from{2:yyyyMMdd}to{3:yyyyMMdd},a:t&start={4}";
+        public const string url_naver_news_search = "https://search.naver.com/search.naver?where=news&sm=tab_pge&query={0}&sort=1&photo=0&field={1}&pd=3&ds={2:yyyy.MM.dd}&de={3:yyyy.MM.dd}&mynews=0&office_type=0&office_section_code=0&news_office_checked=&office_category=0&service_area=0&nso=so:dd,p:from{2:yyyyMMdd}to{3:yyyyMMdd},a:t&start={4}";
 
 
         public WebDownloadManager(int threadcount, int maxaction, int period, string path, int waittimesec = 0) : base(threadcount, maxaction, period, waittimesec)
@@ -60,7 +61,7 @@ namespace NEWSViewer.Compositions
 
         public async Task<Tuple<List<T_ARTICLE>, int>> NaverNewsSearch(string text, bool titleonly, DateTime dtstart, DateTime dtend, int page = 1)
         {
-            var url = string.Format(url_naver_news_search, text, titleonly ? 1 : 0, dtstart, dtend, (page - 1) * 10 + 1);
+            var url = string.Format(url_naver_news_search, System.Web.HttpUtility.UrlEncode(text), titleonly ? 1 : 0, dtstart, dtend, (page - 1) * 10 + 1);
             var bt = await WebClinetDownloadAsync(url, null, TimeSpan.FromSeconds(Global.Instance.WebPageCacheSec).TotalDays);
             if (bt != null)
             {
@@ -72,7 +73,6 @@ namespace NEWSViewer.Compositions
                 Log.Error("NaverNewsSearch Url:{0} Error:{1}", url, "Download Failed");
                 return null;
             }
-
         }
 
         public Tuple<List<T_ARTICLE>, int> GetItems(string html)

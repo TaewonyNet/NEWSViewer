@@ -367,6 +367,15 @@ WHERE InfoTime<@enddate AND IsRead=1 AND IsDelete != 1
 ", p);
         }
 
+        public int DeleteT_ARTICLE()
+        {
+            SqlParamCollection p = new SqlParamCollection();
+            return ExecuteNonQuery(@"
+DELETE FROM T_ARTICLE
+WHERE ModDate<datetime('now', '-1 day') AND IsDelete = 1
+", p);
+        }
+
         public int DeleteT_ARTICLE(bool isread)
         {
             SqlParamCollection p = new SqlParamCollection();
