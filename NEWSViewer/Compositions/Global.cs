@@ -41,8 +41,9 @@ namespace NEWSViewer
             var datapath = System.IO.Path.Combine(BasePath, "data");
             var logpath = System.IO.Path.Combine(BasePath, "logs");
             //WebDownloadManager = new WebDownloadManager(2, 100, 60, datapath); // 기존 제약조건
-            WebDownloadManager = new WebDownloadManager(2, 3, 2, datapath, 1);
             //WebDownloadManager = new WebDownloadManager(2, 4, 10, datapath);
+            //WebDownloadManager = new WebDownloadManager(2, 3, 2, datapath);
+            WebDownloadManager = new WebDownloadManager(2, 3, 2, datapath);
             GetOption();
 
             System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback((o) => {

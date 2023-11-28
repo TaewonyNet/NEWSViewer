@@ -49,7 +49,13 @@
         <StackPanel Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Horizontal">
             <Button x:Name="Button_Folder" Content="DB폴더열기" Margin="5 5 5 5"/>
         </StackPanel>
-        <TextBlock Grid.Row="2" HorizontalAlignment="Right" Margin="0 0 10 0" VerticalAlignment="Center"><Run Text="Copyright © 2022 All rights reserved by"/><Run Text=" "/><Hyperlink x:Name="Hyperlink_Contact" NavigateUri=""><Run Text="kingtw@nate.com" FontWeight="Bold"/></Hyperlink></TextBlock>
+        <Grid Grid.Row="2" Margin="80 0 10 0" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="1"><Run Text="Copyright © 2022 All rights reserved by"/><Run Text=" "/><Hyperlink x:Name="Hyperlink_Contact" NavigateUri=""><Run Text="kingtw@nate.com" FontWeight="Bold"/></Hyperlink></TextBlock>
+        </Grid>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ColumnDefinition_With" Width="200" MinWidth="200"/>
@@ -153,7 +159,14 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <TextBlock x:Name="TextBlock_SelectedCategory" FontWeight="Bold" Margin="10 5" FontSize="14"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" x:Name="TextBlock_SelectedCategory" FontWeight="Bold" Margin="5 5" FontSize="14"/>
+                    <TextBlock VerticalAlignment="Center" x:Name="TextBlock_News" Text="" Margin="10 0" TextWrapping="NoWrap" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis" Grid.Column="1"/>
+                </Grid>
                 <ListView x:Name="ListView_Acticle" Grid.Row="1" IsTextSearchEnabled="False" SelectionMode="Single" >
                     <ListView.ContextMenu>
                         <ContextMenu>

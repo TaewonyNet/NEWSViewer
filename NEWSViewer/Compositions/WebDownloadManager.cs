@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using TaewonyNet.Common.Compositions;
 using TaewonyNet.Common.Interfaces;
@@ -59,10 +60,33 @@ namespace NEWSViewer.Compositions
             return System.IO.Path.Combine(DataDirectory, System.Web.HttpUtility.UrlEncode(args) + ".dat");
         }
 
+        Dictionary<string, string> headers = new Dictionary<string, string>
+        {
+            {"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"},
+            {"accept-language", "en-US, en:q=0.9"},
+            {"cache-control", "no-cache"},
+            {"pragma", "no-cache"},
+            {"sec-ch-ua", "\"Google Chrome\";v=\"119\", \"Chromium\";v=\"119\", \"Not?A_Brand\";v=\"24\""},
+            {"sec-ch-ua-arch", "\"x86\""},
+            {"sec-ch-ua-bitness", "\"64\""},
+            {"sec-ch-ua-full-version-list", "\"Google Chrome\";v=\"119.0.6045.160\", \"Chromium\";v=\"119.0.6045.160\", \"Not?A_Brand\";v=\"24.0.0.0\""},
+            {"sec-ch-ua-mobile", "?0"},
+            {"sec-ch-ua-model", "\"\""},
+            {"sec-ch-ua-platform", "\"Windows\""},
+            {"sec-ch-ua-platform-version", "\"15.0.0\""},
+            {"sec-ch-ua-wow64", "?0"},
+            {"sec-fetch-dest", "document"},
+            {"sec-fetch-mode", "navigate"},
+            {"sec-fetch-site", "none"},
+            {"sec-fetch-user", "?1"},
+            {"upgrade-insecure-requests", "1"}
+        };
+
         public async Task<Tuple<List<T_ARTICLE>, int>> NaverNewsSearch(string text, bool titleonly, DateTime dtstart, DateTime dtend, int page = 1)
         {
             var url = string.Format(url_naver_news_search, System.Web.HttpUtility.UrlEncode(text), titleonly ? 1 : 0, dtstart, dtend, (page - 1) * 10 + 1);
-            var bt = await WebClinetDownloadAsync(url, null, TimeSpan.FromSeconds(Global.Instance.WebPageCacheSec).TotalDays);
+            //var url = string.Format(url_naver_news_search, text, titleonly ? 1 : 0, dtstart, dtend, (page - 1) * 10 + 1);
+            var bt = await WebClinetDownloadAsync(url, headers, TimeSpan.FromSeconds(Global.Instance.WebPageCacheSec).TotalDays);
             if (bt != null)
             {
                 var html = Encoding.UTF8.GetString(bt);

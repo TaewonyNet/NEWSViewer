@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -262,21 +263,27 @@ namespace NEWSViewer
             }
         }
 
+        bool Is_Loaded = false;
+
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             SelectedTreeViewItem(CategoryDatas.First());
 
             SearchStart();
 
-            Timer = new Timer();
-            Timer.Elapsed += Timer_Elapsed;
-            Timer.Interval = TimeSpan.FromSeconds(0.05).TotalMilliseconds;
-            Timer.Start();
+            if (!Is_Loaded)
+            {
+                Is_Loaded = true;
+                Timer = new Timer();
+                Timer.Elapsed += Timer_Elapsed;
+                Timer.Interval = TimeSpan.FromSeconds(0.05).TotalMilliseconds;
+                Timer.Start();
 
-            Timer uiTimer = new Timer();
-            uiTimer.Elapsed += UiTimer_Elapsed;
-            uiTimer.Interval = TimeSpan.FromSeconds(1).TotalMilliseconds;
-            uiTimer.Start();
+                Timer uiTimer = new Timer();
+                uiTimer.Elapsed += UiTimer_Elapsed;
+                uiTimer.Interval = TimeSpan.FromSeconds(1).TotalMilliseconds;
+                uiTimer.Start();
+            }
         }
 
         private void UiTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -453,18 +460,43 @@ namespace NEWSViewer
                                 }
                             }
                             int page = 1;
+                            int bf_count = 0;
                             do
                             {
                                 try
                                 {
+                                    bf_count = list.Count;
                                     var arts = await Global.Instance.WebDownloadManager.NaverNewsSearch(
                                         search,
                                         cate.Data.IsSearchTitle,
                                         betime,
                                         DateTime.Now,
                                         page);
+                                    for (int i = 0; i < 3; i++)
+                                    {
+                                        if (arts == null)
+                                        {
+                                            await Task.Delay(10000 * i);
+                                            arts = await Global.Instance.WebDownloadManager.NaverNewsSearch(
+                                            search,
+                                            cate.Data.IsSearchTitle,
+                                            betime,
+                                            DateTime.Now,
+                                            page);
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    }
                                     if (arts != null && arts.Item1 != null && arts.Item1.Count > 0)
                                     {
+                                        if (arts.Item1.Count > 0)
+                                        {
+                                            TextBlock_News.Invoke(() => {
+                                                TextBlock_News.Text = arts.Item1[0].Title;
+                                            });
+                                        }
                                         list.AddRange(arts.Item1);
                                         if (arts.Item2 == page)
                                         {
@@ -482,7 +514,7 @@ namespace NEWSViewer
                                     Log.Error("WebDownloadManager {0}", ex);
                                 }
                             }
-                            while (list.Count > 0 && list.Count <= Global.Instance.CrawlerOnceCount && list.Min(f => f.InfoTime) > betime);
+                            while (list.Count > bf_count && list.Count <= Global.Instance.CrawlerOnceCount && list.Min(f => f.InfoTime) > betime);
 
                             var barts = SqlManager.Instance.SelectT_ARTICLE(cate.Data.CategorySeq);
                             for (int i = list.Count - 1; i >= 0; i--)
