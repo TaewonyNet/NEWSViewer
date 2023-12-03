@@ -43,7 +43,8 @@ namespace NEWSViewer
             //WebDownloadManager = new WebDownloadManager(2, 100, 60, datapath); // 기존 제약조건
             //WebDownloadManager = new WebDownloadManager(2, 4, 10, datapath);
             //WebDownloadManager = new WebDownloadManager(2, 3, 2, datapath);
-            WebDownloadManager = new WebDownloadManager(2, 3, 2, datapath);
+            //WebDownloadManager = new WebDownloadManager(2, 3, 2, datapath);
+            WebDownloadManager = new WebDownloadManager(2, Global.Instance.CrawlerMaxaction, Global.Instance.CrawlerPeriod, datapath);
             GetOption();
 
             System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback((o) => {
@@ -163,9 +164,12 @@ namespace NEWSViewer
         }
 
         public string[] OptionKeys = new[] {
+            "CrawlerMaxaction", "CrawlerPeriod",
             "NoReadColor" ,"ReadColor", "HighlightColor", "CrawlerOnceCount", "CrawlerOnceDay", "ReSearchTimeSec", "ReadAutoDeleteDay", "WebPageCacheSec", "PreviewRead", "TitleFontSize",
             "ListItemMargin"
         };
+        public int CrawlerMaxaction = 3;
+        public int CrawlerPeriod = 3;
         public Color NoReadColor = (Color)ColorConverter.ConvertFromString("#E7FFBF");
         public Color ReadColor = Colors.White;
         public Color HighlightColor = Colors.Red;

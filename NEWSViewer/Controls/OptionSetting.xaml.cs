@@ -38,6 +38,8 @@ namespace NEWSViewer.Controls
 
             global = Global.Instance;
 
+            NumericUpDown_CrawlerMaxaction.Value = global.CrawlerMaxaction;
+            NumericUpDown_CrawlerPeriod.Value = global.CrawlerPeriod;
             ColorPicker_NoReadColor.SelectedColor = global.NoReadColor;
             ColorPicker_ReadColor.SelectedColor = global.ReadColor;
             ColorPicker_HighlightColor.SelectedColor = global.HighlightColor;
@@ -53,6 +55,8 @@ namespace NEWSViewer.Controls
 
         private void Button_OK_Click(object sender, RoutedEventArgs e)
         {
+            global.CrawlerMaxaction = (int)NumericUpDown_CrawlerMaxaction.Value;
+            global.CrawlerPeriod = (int)NumericUpDown_CrawlerPeriod.Value;
             global.NoReadColor = ColorPicker_NoReadColor.SelectedColor.Value;
             global.ReadColor = ColorPicker_ReadColor.SelectedColor.Value;
             global.HighlightColor= ColorPicker_HighlightColor.SelectedColor.Value;

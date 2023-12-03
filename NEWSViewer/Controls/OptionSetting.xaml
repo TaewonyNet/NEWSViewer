@@ -8,7 +8,7 @@
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" x:Class="NEWSViewer.Controls.OptionSetting"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid Background="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
@@ -20,17 +20,26 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="140"/>
             </compositions:GridStackPanel.ColumnDefinitions>
+            <TextBlock Text="크롤링 주기 재시작필요(최대접속수/기간(초))" Margin="5"/>
             <TextBlock Text="읽지 않은 색상" Margin="5"/>
             <TextBlock Text="읽음 색상" Margin="5"/>
             <TextBlock Text="검색어 강조 색상" Margin="5"/>
             <TextBlock Text="한번에 수집 할 최대 글(개수)" Margin="5"/>
-            <TextBlock Text="한분에 수집 할 최대 날짜(일 전)" Margin="5"/>
+            <TextBlock Text="한번에 수집 할 최대 날짜(일 전)" Margin="5"/>
             <TextBlock Text="전체검색 후 재검색 대기시간(초)" Margin="5"/>
             <TextBlock Text="읽은 항목 자동삭제 날짜(일 전, 0:즉시삭제)" Margin="5"/>
             <TextBlock Text="웹페이지 캐시 시간(초)" Margin="5"/>
             <TextBlock Text="기사 제목 글자 크기" Margin="5"/>
             <TextBlock Text="기사 목록 글자 간격" Margin="5"/>
             <TextBlock Text="미리보기 시 즉시 읽음 표시" Margin="5"/>
+            <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <mah:NumericUpDown x:Name="NumericUpDown_CrawlerMaxaction" Minimum="2" Maximum="100" Interval="1"/>
+                <mah:NumericUpDown x:Name="NumericUpDown_CrawlerPeriod" Grid.Column="1" Minimum="2" Maximum="60" Interval="1"/>
+            </Grid>
             <mah:ColorPicker x:Name="ColorPicker_NoReadColor" Grid.Column="1" />
             <mah:ColorPicker x:Name="ColorPicker_ReadColor" Grid.Column="1"/>
             <mah:ColorPicker x:Name="ColorPicker_HighlightColor" Grid.Column="1"/>
